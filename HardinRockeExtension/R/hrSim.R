@@ -10,7 +10,7 @@ hrSim <-
 # 2014-01-26 changed default mcd.alpha to maximum breakdown 
 #   point case, which in general will be slightly larger than 0.5
 #
-function(p,n,N,B=10000,alpha=0.05,mcd.alpha=floor((n+p+1)/2)/n) {
+function(p,n,N,B=10000,alpha=0.05,mcd.alpha=max.bdp.mcd.alpha(n,p)) {
 
   #require(rrcov, quiet=TRUE)
   #require(mvtnorm, quiet=TRUE)
