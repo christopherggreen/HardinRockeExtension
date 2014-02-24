@@ -67,8 +67,14 @@ function(p,n,N,B=10000,
   mcd.ave <- colSums(blockresults[,"AVE",])
   mcd.sq  <- colSums(blockresults[,"SQ" ,])
 
+  # estimate of c is average of all diagonal elements
   mcd.c   <- mcd.ave/(N*p)
+  # (sum of squares - n * square of mean)/(n - 1)
   mcd.var <- (mcd.sq - (mcd.c * mcd.c * N * p))/(N * p - 1)
+  # estimate of m follows from formula: 2 div by (coef of var)^2
+  # coef of var is sqrt of var div by c
+  # var of diagonal elements is sum of (s_jj - c)^2, div by
+  # Np-1; rearrange numerator
   mcd.m   <- 2*mcd.c*mcd.c/mcd.var
 
   data.frame(c=mcd.c, m=mcd.m, mcd.alpha=mcd.alpha)
