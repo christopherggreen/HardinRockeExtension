@@ -1,8 +1,15 @@
+# Replicate Table 1 in Hardin and Rocke (2005),
+# page 942
+#
+# Christopher G. Green
+# 2014-02-24
+#
+
 # run simulations in parallel
 
 library(parallel)
 
-thecluster <- makePSOCKcluster(6)
+thecluster <- makePSOCKcluster(4)
 # initialize each node
 tmp.rv <- clusterEvalQ( cl = thecluster, {
   require( CerioliOutlierDetection )

@@ -1,3 +1,11 @@
+# Replicate Table 1 in Hardin and Rocke (2005),
+# page 942
+#
+# Christopher G. Green
+# 2014-02-24
+#
+# old non-parallel version
+
 library( CerioliOutlierDetection )
 library( HardinRockeExtension )
 
