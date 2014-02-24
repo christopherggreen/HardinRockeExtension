@@ -10,4 +10,4 @@ Description: Provides functions and scripts to replicate
 License: GPL (>= 2) | file LICENSE
 Copyright: Christopher G. Green
 LazyLoad: yes
-Depends: CerioliOutlierDetection, rrcov, mvtnorm
+Depends: CerioliOutlierDetection, abind, rrcov, mvtnorm
