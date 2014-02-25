@@ -55,7 +55,7 @@ function(p,n,N,B=10000,
 
   # do last block
   r <- N - M*B
-  if (r > 0 ) { blockresults[[M+1]] <- blockfcn(i=M+1,b=r) }
+  if (r > 0 ) { blockresults[[M+1]] <- blockfcn(m=M+1,b=r) }
 
   blockresults <- do.call("abind",c(blockresults,list(along=1)))
 
