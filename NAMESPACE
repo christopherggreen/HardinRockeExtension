@@ -1,3 +1,4 @@
 export(
-	hrSim
+	hrSim,
+	hr.cm
 )
