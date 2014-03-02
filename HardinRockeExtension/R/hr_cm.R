@@ -46,7 +46,7 @@ function(p,n,N,B=10000,
 			# covariance already computed by CovMcd
 			# use raw.cov to avoid any potential reweighting
 			# see code for covMcd in robustbase
-			mcd.cov@raw.cov
+			mcd@raw.cov
 		} else {
 			cov( simdata[mcd@best,,j] )
 		}
