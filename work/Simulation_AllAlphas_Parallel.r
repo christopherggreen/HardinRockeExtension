@@ -26,12 +26,15 @@
 library(parallel)
 
 thecluster <- makePSOCKcluster(4)
+# make this reproducible
+clusterSetRNGStream(cl = thecluster, 2014)
+
 # initialize each node
 tmp.rv <- clusterEvalQ( cl = thecluster, {
   require( CerioliOutlierDetection )
   require( HardinRockeExtension )
-  N.SIM <- 100#5000
-  B.SIM <- 100#250
+  N.SIM <- 10#5000
+  B.SIM <- 10#250
  
   my.pid <- Sys.getpid()
   cat("My pid is ", my.pid, "\n")
@@ -78,11 +81,11 @@ clusterExport(cl = thecluster, "mcd.alphas")
 cat("Starting run at ", format(Sys.time()), "\n")
 
 hr.cm.results.all.pre <- parLapply(cl = thecluster, 
-  X = hr.cm.params, function(pn) {
+  X = hr.cm.params[1:5], function(pn) {
     cat("Starting case p = ",pn[1]," n = ",pn[2]," at time ", 
 	  format(Sys.time()), " \n",file=logfile,append=TRUE)
     results <- hr.cm(p = pn[1] , n = pn[2], N=N.SIM, B=B.SIM, 
-	  mcd.alpha=c(pn[3],mcd.alphas), logfile=logfile)
+	  mcd.alpha=unique(c(pn[3],mcd.alphas)), logfile=logfile)
     cat("Finished case p = ",pn[1]," n = ",pn[2]," at time ", 
 	  format(Sys.time()), " \n",file=logfile,append=TRUE)
 	data.frame(p=pn[1],n=pn[2],mbp=pn[3],results)
