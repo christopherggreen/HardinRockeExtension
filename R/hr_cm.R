@@ -39,7 +39,17 @@ function(p,n,N,B=10000,
       for ( a in 1:n.mcdalpha ) {
         mcd <- CovMcd(simdata[,,j],alpha=mcd.alpha[a])
         # get the covariance of the MCD subset
-        mcd.cov <- cov( simdata[mcd@best,,j] )
+		# 2014-03-01 when alpha == 1, mcd@best is 
+		# null b/c CovMcd uses the classical covariance
+        mcd.cov <- if ( mcd.alpha[a]==1.0 ) {
+			#cov( simdata[,,j] ) 
+			# covariance already computed by CovMcd
+			# use raw.cov to avoid any potential reweighting
+			# see code for covMcd in robustbase
+			mcd.cov@raw.cov
+		} else {
+			cov( simdata[mcd@best,,j] )
+		}
         results[j,1,a] <- sum(diag(mcd.cov))
         results[j,2,a] <- sum(diag(mcd.cov)^2)
       }
