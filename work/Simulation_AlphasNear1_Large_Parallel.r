@@ -25,7 +25,7 @@
 
 library(parallel)
 
-thecluster <- makePSOCKcluster(4)
+thecluster <- makePSOCKcluster(10)
 # make this reproducible
 clusterSetRNGStream(cl = thecluster, 2014)
 
@@ -33,71 +33,72 @@ clusterSetRNGStream(cl = thecluster, 2014)
 tmp.rv <- clusterEvalQ( cl = thecluster, {
   require( CerioliOutlierDetection )
   require( HardinRockeExtension )
-  N.SIM <- 10#5000
-  B.SIM <- 10#250
+  N.SIM <- 5000
+  B.SIM <- 250
  
   my.pid <- Sys.getpid()
   cat("My pid is ", my.pid, "\n")
-  logfile <- paste("Simulation_AllAlphas_Parallel_logfile_",my.pid,".txt",sep="")
+  logfile <- paste("Simulation_AlphaNear1LargeN_Parallel_logfile_",my.pid,".txt",sep="")
   cat("Initialized\n\n", file=logfile)
 
   invisible(NULL)
 })
 
 # build the pairs of sample size n and dimension p
-hr.cm.params <- expand.grid(
+hr.cmstarbig.params <- expand.grid(
 	    list(
 		  p=c(3,5,7,10,15,20),
-		  n=c(50,100,250,500,750,1000)
+		  n=c(500,750,1000)
 		)
 	  )
-# adding more coverage for small sample sizes
-hr.cm.params <- rbind( hr.cm.params, within( 
-  expand.grid(list(p=c(3,5,7,10,15,20), ratio=c( 3,5,7,9,11 ) )), 
-  {
-    n <- p * ratio
-    rm(ratio)
-  }
-))
+
 # remove any duplicates
-hr.cm.params <- unique(hr.cm.params)
-# want to run most expensive cases first
-hr.cm.params <- hr.cm.params[ order( hr.cm.params$n, hr.cm.params$p, decreasing=TRUE ), ]
+hr.cmstarbig.params <- unique(hr.cmstarbig.params)
 
 # add maximum breakdown point case to the params data set
-hr.cm.params[,"mbp"] <- apply( hr.cm.params, 1, function(x) floor( (x[2] + x[1] + 1)/2 )/x[2] )
+hr.cmstarbig.params[,"mbp"] <- apply( hr.cmstarbig.params, 1, function(x) floor( (x[2] + x[1] + 1)/2 )/x[2] )
+
+# run each case 10 times
+nnn <- nrow(hr.cmstarbig.params)
+hr.cmstarbig.params <- apply( hr.cmstarbig.params, 2, function(x) rep(x,10) )
+hr.cmstarbig.params <- cbind(hr.cmstarbig.params, "Case"=rep(1:10, each=nnn))
+
+# want to run most expensive cases first
+hr.cmstarbig.params <- hr.cmstarbig.params[ order( hr.cmstarbig.params[,"n"], hr.cmstarbig.params[,"p"], decreasing=TRUE ), ]
 
 # want each case to be a column so that we can use parLapply
-hr.cm.params <- data.frame(t(as.matrix(hr.cm.params)))
+hr.cmstarbig.params <- data.frame(t(as.matrix(hr.cmstarbig.params)))
+names(hr.cmstarbig.params) <- as.character(seq(ncol(hr.cmstarbig.params)))
       
-mcd.alphas <- c(0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95,0.99,0.995) 
-clusterExport(cl = thecluster, "hr.cm.params")
+mcd.alphas <- c(0.90,0.95,0.99,0.995) 
+clusterExport(cl = thecluster, "hr.cmstarbig.params")
 clusterExport(cl = thecluster, "mcd.alphas")
 
 #
 # using parLapply here to prevent simplification of the
 # results (as parApply would attempt to do)
 #
+
 cat("Starting run at ", format(Sys.time()), "\n")
 
-hr.cm.results.all.pre <- parLapply(cl = thecluster, 
-  X = hr.cm.params[1:5], function(pn) {
+hr.cmstarbig.results.all.pre <- parLapply(cl = thecluster, 
+  X = hr.cmstarbig.params, function(pn) {
     cat("Starting case p = ",pn[1]," n = ",pn[2]," at time ", 
 	  format(Sys.time()), " \n",file=logfile,append=TRUE)
     results <- hr.cm(p = pn[1] , n = pn[2], N=N.SIM, B=B.SIM, 
-	  mcd.alpha=unique(c(pn[3],mcd.alphas)), logfile=logfile)
+	  mcd.alpha=unique(mcd.alphas), logfile=logfile)
     cat("Finished case p = ",pn[1]," n = ",pn[2]," at time ", 
 	  format(Sys.time()), " \n",file=logfile,append=TRUE)
-	data.frame(p=pn[1],n=pn[2],mbp=pn[3],results)
+	data.frame(p=pn[1],n=pn[2],mbp=pn[3],case=pn[4],results)
   }
 )
 cat("Run completed at ", format(Sys.time()), "\n")
 
 stopCluster(thecluster)
 
-hr.cm.results.all.pre[[1]]
+hr.cmstarbig.results.all.pre[[1]]
 
-hr.cm.results.all <- do.call("rbind", hr.cm.results.all.pre )
+hr.cmstarbig.results.all <- do.call("rbind", hr.cmstarbig.results.all.pre )
 
-save("hr.cm.results.all", file="hr.cm.results.all.final.rda")
+save("hr.cmstarbig.results.all", file="hr.cmstarbig.results.all.final.rda")
 save.image()

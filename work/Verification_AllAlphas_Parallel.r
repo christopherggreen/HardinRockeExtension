@@ -64,7 +64,7 @@ hr.cm.params[,"mbp"] <- apply( hr.cm.params, 1, function(x) floor( (x[2] + x[1] 
 # want each case to be a column so that we can use parLapply
 hr.cm.params <- data.frame(t(as.matrix(hr.cm.params)))
       
-mcd.alphas <- c(0.55,0.65,0.70,0.75,0.80,0.85,0.90,0.95,0.99,0.995,1.00) 
+mcd.alphas <- c(0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95,0.99,0.995,1.00) 
 clusterExport(cl = thecluster, "hr.cm.params")
 clusterExport(cl = thecluster, "mcd.alphas")
 
