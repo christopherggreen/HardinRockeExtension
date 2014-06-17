@@ -80,8 +80,8 @@ function(p,n,N,B=10000,alpha=0.05,mcd.alpha=max.bdp.mcd.alpha(n,p)) {
   if (r > 0 ) { blockresults[[M+1]] <- blockfcn(i=M+1,b=r) }
 
   blockresults <- do.call("rbind",blockresults)
-  dimnames(blockresults)[[2]] <- c("CHI2.RAW","CHI2.CON","CHI2.SM","HRASY.RAW",
-    "HRASY.CON","HRASY.SM","HRPRED.RAW","HRPRED.CON","HRPRED.SM")
+  dimnames(blockresults)[[2]] <- c("CHI2.RAW","CHI2.CON","CHI2.SM","CGASY.RAW",
+    "CGASY.CON","CGASY.SM","CGPRED.RAW","CGPRED.CON","CGPRED.SM")
   blockresults
 
 
