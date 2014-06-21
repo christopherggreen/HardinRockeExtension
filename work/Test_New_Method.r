@@ -14,8 +14,8 @@ thecluster <- makePSOCKcluster(4)
 tmp.rv <- clusterEvalQ( cl = thecluster, {
   require( CerioliOutlierDetection )
   require( HardinRockeExtension )
-  N.SIM <- 5000
-  B.SIM <- 500
+  N.SIM <- 500#0
+  B.SIM <- 50#0
 
 
   NULL
@@ -31,7 +31,7 @@ clusterExport(cl = thecluster, "hr.cases")
 #
 system.time(hrResults <- parLapply(cl = thecluster, 
   X = hr.cases, function(pn) {
-    #cat("Trial p = ",p," n = ",n,"\n")
+    #cat("Trial p = ",pn[1]," n = ",pn[2],"\n")
     hrSimNew(p = pn[1] , n = pn[2], mcd.alpha=pn[3], N=N.SIM, B=B.SIM)
   }
 ))/60
