@@ -1,8 +1,8 @@
 Package: HardinRockeExtension
 Type: Package
 Title: Replication and Extension of Hardin and Rocke (2005)
-Version: 1.0
-Date: 2014-02-09
+Version: 1.0.2
+Date: 2014-06-22
 Author: Christopher G. Green 
 Maintainer: Christopher G. Green <christopher.g.green@gmail.com> 
 Description: Provides functions and scripts to replicate 
