@@ -29,8 +29,11 @@ function(cl,p,n,N,B=10000,alpha=0.05,mcd.alpha=max.bdp.mcd.alpha(n,p),lgf="") {
     # compute MCD
     results <- array(NA, dim=c(b,9))
     cat("\t Iteration: ",file=lgf,append=TRUE)
+	# HR05 is not supported for mcd.alpha other than the maximum
+	# breakdown point case
     hr <- hr05CutoffMvnormal(n.obs=n,p.dim=p,
-      mcd.alpha=mcd.alpha,signif.alpha=alpha, method="HR05")
+      #mcd.alpha=mcd.alpha,
+	  signif.alpha=alpha, method="HR05")
     
     for ( j in 1:b ) {
       if ( (j%% 50)==0 ) cat(j," ",file=lgf,append=TRUE)
