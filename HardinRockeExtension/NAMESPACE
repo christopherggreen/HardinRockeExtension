@@ -3,5 +3,6 @@ export(
 	hrSimParallel,
 	hrSimNew,
 	hrSimNewParallel,
-	hr.cm
+	hr.cm,
+	table1sim.parallel
 )
