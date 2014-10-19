@@ -4,5 +4,7 @@ export(
 	hrSimNew,
 	hrSimNewParallel,
 	hr.cm,
-	table1sim.parallel
+	table1sim.parallel,
+	table13sim.parallel,
+	CovMcd2
 )
