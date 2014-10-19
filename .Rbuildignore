@@ -1,8 +1,8 @@
-*.Rcheck
+.*.Rcheck
 .*\.bat
 .*\.gz
 .*\.zip
 .gitignore
 .git
-old\*
-work\*
+old\.*
+work\.*
