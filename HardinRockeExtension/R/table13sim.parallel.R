@@ -53,11 +53,11 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
       #  }
 
       results <- array(NA, dim=c(b,37,length(alpha)))
-      cat("\t Iteration: ", file=lgf, append=TRUE)
+      cat("\tIteration: ", file=lgf, append=TRUE)
 
-      cat("p = ",p,"nn = ",nn,"b = ",b,"\n", file=lgf, append=TRUE)
+      cat("\tp = ",p,"nn = ",nn,"b = ",b,"\n", file=lgf, append=TRUE)
       for ( j in 1:b ) {
-        if ( (j %% 100)==0 ) cat(j," ", file=lgf, append=TRUE)
+        if ( (j %% 100)==0 ) cat("\t",j," \n", file=lgf, append=TRUE)
 
         # calculate average number of rejections at chi-squared(p,1-alpha)
         # level
@@ -65,7 +65,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
         # reweighted ogk with beta = 0.9 
         ogk <- tryCatch(CovOgk(simdata[,,j], beta = 0.9), error=function(e) e)
         if ( inherits(ogk,"simpleError") ) {
-          cat(conditionMessage(ogk),"\n", file=lgf, append=TRUE)
+          cat("\t",conditionMessage(ogk),"\n", file=lgf, append=TRUE)
           stop("ogk was the culprit.")
         }
         for ( k in alphaind ) {
@@ -84,7 +84,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 		# reweighted ogk with beta = 1 - (0.1/nn) for table 3
         ogk <- tryCatch(CovOgk(simdata[,,j], beta = (1 - (0.1/nn))), error=function(e) e)
         if ( inherits(ogk,"simpleError") ) {
-          cat(conditionMessage(ogk),"\n", file=lgf, append=TRUE)
+          cat("\t",conditionMessage(ogk),"\n", file=lgf, append=TRUE)
           stop("ogk was the culprit.")
         }
         for ( k in alphaind ) {
@@ -96,7 +96,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
         # bisquare S-estimator
         sest <- tryCatch(CovSest(simdata[,,j], method="bisquare"), error=function(e) e)
         if ( inherits(sest,"simpleError") ) {
-          cat(conditionMessage(sest),"\n", file=lgf, append=TRUE)
+          cat("\t",conditionMessage(sest),"\n", file=lgf, append=TRUE)
           stop("BS S-est was the culprit.")
         }
         for ( k in alphaind ) {
@@ -107,15 +107,30 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
           results[j,20,k] <- (max(getDistance(sest)) > qpalpha.t3[k])
         }
 
-        # rocke S-estimator (won't work for n = 50 and p = 16)
+        # rocke S-estimator (won't work for n = 50 and p >= 16)
 		# using asymptotic rejectin probability of 0.05 per MMY chapter 6
+
+		# 2014-10-19 the occasional error from Rocke seems to be 
+		# related to a bad random sample within the routine.
+		# can move the random number generator along, and try again
+		# this often seems to get us an answer
         sest <- tryCatch(CovSest(simdata[,,j], method="rocke", arp=0.05), 
 		  error=function(e) e)
         if ( inherits(sest,"simpleError") ) {
-          cat(conditionMessage(sest),"\n",file=lgf, append=TRUE)
-		  zzz <- simdata[,,j]
-		  save("zzz", file="RockeErrorSample.rda")
-          stop("Rocke sest was the culprit.")
+          #cat("\tError was: ",conditionMessage(sest),"\n",file=lgf, append=TRUE)
+		  tries <- 1
+		  while ( (inherits(sest, "simpleError")) && (tries < maxtries) ) {
+            cat("\tError was: ",conditionMessage(sest),"\n",file=lgf, append=TRUE)
+			cat("\tRetrying iteration ",j," in this block.\n",file=lgf,append=TRUE)
+			runif(100)
+            sest <- tryCatch(CovSest(simdata[,,j], method="rocke", arp=0.05), 
+		      error=function(e) e)
+		    tries <- tries + 1
+		  }
+		  if ( inherits(sest,"simpleError") ) {
+			cat("\tFailed ", tries, "times. Aborting.\n",file=lgf,append=TRUE)
+		    stop(paste("Failed to calculate iteration ",j,": Rocke sest was the culprit."))
+		  } 
         }
         for ( k in alphaind ) {
 		    # table 1
@@ -128,7 +143,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
         # mcd(0.50)
         mcd50 <- tryCatch(CovMcd(simdata[,,j]), error = function(e) e)
         if ( inherits(mcd50,"simpleError") ) {
-          cat(conditionMessage(mcd50),"\n", file=lgf, append=TRUE)
+          cat("\t",conditionMessage(mcd50),"\n", file=lgf, append=TRUE)
           stop("MCD50 was the culprit.")
         }
         # hardin and rocke used consistency factor, but only seemed to
@@ -174,7 +189,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
         # mcd(0.75)
         mcd75 <- tryCatch(CovMcd(simdata[,,j],alpha=0.75), error=function(e) e)
         if ( inherits(mcd75,"simpleError") ) {
-          cat(conditionMessage(mcd75),"\n", file=lgf, append=TRUE)
+          cat("\t",conditionMessage(mcd75),"\n", file=lgf, append=TRUE)
           stop("MCD75 was the culprit.")
         }
         # hardin and rocke used consistency factor, but only seemed to
@@ -217,7 +232,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
         # mcd(0.95)
         mcd95 <- tryCatch(CovMcd(simdata[,,j],alpha=0.95), error=function(e) e)
         if ( inherits(mcd95,"simpleError") ) {
-          cat(conditionMessage(mcd95),"\n", file=lgf, append=TRUE)
+          cat("\t",conditionMessage(mcd95),"\n", file=lgf, append=TRUE)
           stop("MCD95 was the culprit.")
         }
         ss  <- mcd95@raw.cnp2[2]
@@ -293,13 +308,13 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 			res <- try(blockfcn(m=j[1],b=j[2]),silent=FALSE) 
 			tries <- 1
 			while ( (inherits(res, "try-error")) && (tries < maxtries) ) {
-				cat("\nRetrying block",j,"\n",file=lgf,append=TRUE)
+				cat("\nRetrying block",j[1],"\n",file=lgf,append=TRUE)
 				res <- try(blockfcn(m=j[1],b=j[2]), silent=FALSE)
 				tries <- tries + 1
 			}
 			if ( inherits(res,"try-error") ) {
 				cat("Failed ", tries, "times. Aborting.\n",file=lgf,append=TRUE)
-				stop(paste("Failed to calculate block",j,"\n"))
+				stop(paste("Failed to calculate block",j[1],"\n"))
 			} else {
 				res
 			}
