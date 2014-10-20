@@ -113,6 +113,8 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 		  error=function(e) e)
         if ( inherits(sest,"simpleError") ) {
           cat(conditionMessage(sest),"\n",file=lgf, append=TRUE)
+		  zzz <- simdata[,,j]
+		  save("zzz", file="RockeErrorSample.rda")
           stop("Rocke sest was the culprit.")
         }
         for ( k in alphaind ) {
@@ -291,13 +293,13 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 			res <- try(blockfcn(m=j[1],b=j[2]),silent=FALSE) 
 			tries <- 1
 			while ( (inherits(res, "try-error")) && (tries < maxtries) ) {
-				cat("\nRetrying block",i,"\n",file=lgf,append=TRUE)
+				cat("\nRetrying block",j,"\n",file=lgf,append=TRUE)
 				res <- try(blockfcn(m=j[1],b=j[2]), silent=FALSE)
 				tries <- tries + 1
 			}
 			if ( inherits(res,"try-error") ) {
 				cat("Failed ", tries, "times. Aborting.\n",file=lgf,append=TRUE)
-				stop(paste("Failed to calculate block",i,"\n"))
+				stop(paste("Failed to calculate block",j,"\n"))
 			} else {
 				res
 			}
