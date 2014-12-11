@@ -6,5 +6,6 @@ export(
 	hr.cm,
 	table1sim.parallel,
 	table13sim.parallel,
+	table13sim.parallel.check,
 	CovMcd2
 )
