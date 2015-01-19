@@ -1,12 +1,13 @@
 Package: HardinRockeExtension
 Type: Package
-Title: Replication and Extension of Hardin and Rocke (2005)
-Version: 1.0.5
-Date: 2014-12-11
+Title: Replication and Extension of Hardin and Rocke (2005), Cerioli et al. (2009)
+Version: 1.0.6
+Date: 2015-01-19
 Author: Christopher G. Green 
 Maintainer: Christopher G. Green <christopher.g.green@gmail.com> 
 Description: Provides functions and scripts to replicate 
-	Hardin and Rocke (2005) as well as Green (2014)
+	Hardin and Rocke (2005), Green and Martin (2014),
+	Cerioli et al. (2009)
 License: GPL (>= 2) | file LICENSE
 Copyright: Christopher G. Green
 LazyLoad: yes
