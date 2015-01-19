@@ -15,6 +15,9 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
     qpalpha.t1 <- qchisq(1-alpha,df=p)
     # compute chi-square cutoff value for table3 which will not change in block
     qpalpha.t3 <- qchisq(1-(alpha/nn),df=p)
+	# 2015-01-18 alternate cutoff value given that we are testing a maximum of
+	# iid random variables
+	qpalpha.t3.alt <- qchisq(1-(alpha^(1./nn)),df=p)
 
     # compute cutoff values for table1 using new method, these will not change in 
     # the block
@@ -36,6 +39,19 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
       hr05CutoffMvnormal(nn,p,mcd.alpha=0.75,signif.alpha=a/nn,method="GM14")$cutoff.pred)
     hr95.t3 <- sapply(alpha, function(a)
       hr05CutoffMvnormal(nn,p,mcd.alpha=0.95,signif.alpha=a/nn,method="GM14")$cutoff.pred)
+	# alternate cutoffs for simultaneous case
+    hrmbp.t3.alt <- sapply(alpha, function(a)
+      hr05CutoffMvnormal(nn,p,               signif.alpha=(a^(1./nn)),
+	  	method="GM14")$cutoff.pred)
+    hrmbp.orig.t3.alt <- sapply(alpha, function(a)
+      hr05CutoffMvnormal(nn,p,               signif.alpha=(a^(1./nn)),
+	  	method="HR")$cutoff.pred)
+    hr75.t3.alt <- sapply(alpha, function(a)
+      hr05CutoffMvnormal(nn,p,mcd.alpha=0.75,signif.alpha=(a^(1./nn)),
+	  	method="GM14")$cutoff.pred)
+    hr95.t3.alt <- sapply(alpha, function(a)
+      hr05CutoffMvnormal(nn,p,mcd.alpha=0.95,signif.alpha=(a^(1./nn)),
+	  	method="GM14")$cutoff.pred)
 
     alphaind <- seq(along=alpha)
 
@@ -54,7 +70,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
       #  stop("Missing or infinite values in random number array.")
       #  }
 
-      results <- array(NA, dim=c(b,48,length(alpha)))
+      results <- array(NA, dim=c(b,74,length(alpha)))
       cat("\tIteration: ", file=lgf, append=TRUE)
 
       cat("\tp = ",p,"nn = ",nn,"b = ",b,"\n", file=lgf, append=TRUE)
@@ -82,6 +98,10 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
           results[j,17,k] <- (max(ogk@raw.mah)       > qpalpha.t3[k])
           # reweighted ogk distances
           results[j,18,k] <- (max(getDistance(ogk))  > qpalpha.t3[k])
+
+		  # new versions with max quantile
+          results[j,49,k] <- (max(ogk@raw.mah)       > qpalpha.t3.alt[k])
+		  results[j,50,k] <- (max(getDistance(ogk))  > qpalpha.t3.alt[k])
         }
 		# reweighted ogk with beta = 1 - (0.1/nn) for table 3
         ogk <- tryCatch(CovOgk(simdata[,,j], beta = (1 - (0.1/nn))), error=function(e) e)
@@ -93,6 +113,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 		  # table 3
           # reweighted ogk distances
           results[j,19,k] <- (max(getDistance(ogk))  > qpalpha.t3[k])
+		  results[j,51,k] <- (max(getDistance(ogk))  > qpalpha.t3.alt[k])
         }
 
         # bisquare S-estimator
@@ -107,6 +128,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 
 		  # table 3
           results[j,20,k] <- (max(getDistance(sest)) > qpalpha.t3[k])
+          results[j,52,k] <- (max(getDistance(sest)) > qpalpha.t3.alt[k])
         }
 
         # rocke S-estimator (won't work for n = 50 and p >= 16)
@@ -140,6 +162,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 
 			# table 3
             results[j,21,k] <- (max(getDistance(sest)) > qpalpha.t3[k])
+            results[j,53,k] <- (max(getDistance(sest)) > qpalpha.t3.alt[k])
         }
 
         # mcd(MBP)
@@ -183,6 +206,19 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
           results[j,25,k] <- (max(mahdist.hr)    > hrmbp.orig.t3[k])
           # reweighted mcd (qchisq(0.950,p))
           results[j,26,k] <- (max(mcdmbp@mah)     > qpalpha.t3[k])
+
+          # unweighted mcd
+          results[j,54,k] <- (max(mcdmbp@raw.mah) > qpalpha.t3.alt[k])
+          # unweighted mcd with revised HR distribution
+          results[j,55,k] <- (max(mcdmbp@raw.mah) > hrmbp.t3.alt[k])
+          # unweighted mcd with revised HR distribution
+          results[j,56,k] <- (max(mcdmbp@raw.mah) > hrmbp.orig.t3.alt[k])
+          # unweighted mcd with no small sample correction
+          results[j,57,k] <- (max(mahdist.hr)    > hrmbp.t3.alt[k])
+          # Hardin-Rocke's original method
+          results[j,58,k] <- (max(mahdist.hr)    > hrmbp.orig.t3.alt[k])
+          # reweighted mcd (qchisq(0.950,p))
+          results[j,59,k] <- (max(mcdmbp@mah)     > qpalpha.t3.alt[k])
         }
 
         # Reweighted-MCD with Bonferroni adjustment to the weighting
@@ -192,6 +228,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 			  debug=FALSE))
 		  # table 3
 		  results[j,27,k] <- (max(mcdmbp@mah)     > qpalpha.t3[k])
+		  results[j,60,k] <- (max(mcdmbp@mah)     > qpalpha.t3.alt[k])
 		}
 
         # mcd(0.75)
@@ -235,6 +272,19 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
           results[j,44,k] <- (max(mahdist.hr)    > hrmbp.orig.t3[k])
           # reweighted mcd (qchisq(0.975,p))
           results[j,31,k] <- (max(mcd75@mah)     > qpalpha.t3[k])
+
+          # unweighted mcd
+          results[j,61,k] <- (max(mcd75@raw.mah) > qpalpha.t3.alt[k])
+          # unweighted mcd with HR distribution
+          results[j,62,k] <- (max(mcd75@raw.mah) > hr75.t3.alt[k])
+          # unweighted mcd with revised HR distribution
+          results[j,63,k] <- (max(mcd75@raw.mah) > hrmbp.orig.t3.alt[k])
+          # unweighted mcd with no small sample correction
+          results[j,64,k] <- (max(mahdist.hr)    > hr75.t3.alt[k])
+          # unweighted mcd with no small sample correction
+          results[j,65,k] <- (max(mahdist.hr)    > hrmbp.orig.t3.alt[k])
+          # reweighted mcd (qchisq(0.975,p))
+          results[j,66,k] <- (max(mcd75@mah)     > qpalpha.t3.alt[k])
         }
         # Reweighted-MCD with Bonferroni adjustment to the weighting
 		for ( k in alphaind ) {
@@ -243,6 +293,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 			  debug=FALSE))
 		  # table 3
 		  results[j,32,k] <- (max(mcd75@mah)     > qpalpha.t3[k])
+		  results[j,67,k] <- (max(mcd75@mah)     > qpalpha.t3.alt[k])
 		}
 
         # mcd(0.95)
@@ -281,6 +332,19 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
           results[j,48,k] <- (max(mahdist.hr)    > hrmbp.orig.t3[k])
           # reweighted mcd (qchisq(0.975,p))
           results[j,36,k] <- (max(mcd95@mah)     > qpalpha.t3[k])
+
+          # unweighted mcd
+          results[j,68,k] <- (max(mcd95@raw.mah) > qpalpha.t3.alt[k])
+          # unweighted mcd with HR distribution
+          results[j,69,k] <- (max(mcd95@raw.mah) > hr95.t3.alt[k])
+          # unweighted mcd with revised HR distribution
+          results[j,70,k] <- (max(mcd95@raw.mah) > hrmbp.orig.t3.alt[k])
+          # unweighted mcd with no small sample correction
+          results[j,71,k] <- (max(mahdist.hr)    > hr95.t3.alt[k])
+          # unweighted mcd with no small sample correction
+          results[j,72,k] <- (max(mahdist.hr)    > hrmbp.orig.t3.alt[k])
+          # reweighted mcd (qchisq(0.975,p))
+          results[j,73,k] <- (max(mcd95@mah)     > qpalpha.t3.alt[k])
         }
         # Reweighted-MCD with Bonferroni adjustment to the weighting
 		for ( k in alphaind ) {
@@ -289,6 +353,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 			  debug=FALSE))
 		  # table 3
 		  results[j,37,k] <- (max(mcd95@mah)     > qpalpha.t3[k])
+		  results[j,74,k] <- (max(mcd95@mah)     > qpalpha.t3.alt[k])
 		}
 
      } # looping over the block
@@ -318,7 +383,10 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
    clusterExport(cl = cl, c("M","B","blockfcn","p","nn","N","alpha",
      "qpalpha.t1","qpalpha.t3","hrmbp.t1","hrmbp.orig.t1",
 	 "hr75.t1","hr95.t1","hrmbp.t3",
-	 "hrmbp.orig.t3","hr75.t3","hr95.t3","alphaind","maxtries"),
+	 "hrmbp.orig.t3","hr75.t3","hr95.t3",
+	 "qpalpha.t3.alt","hrmbp.t3.alt","hrmbp.orig.t3.alt",
+	 "hr75.t3.alt","hr95.t3.alt",
+	 "alphaind","maxtries"),
      envir=sys.frame(pf) )
 
    blockresults <- parLapply(cl=cl, X=worklist, 
@@ -381,7 +449,19 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 	 # backfilled stuff
 	 "MCDMBP.HRRAW.T1","MCDMBP.HRADJ.T1","MCDMBP.HRRAW.T3",
 	 "MCD75.HRRAW.T1","MCD75.HRADJ.T1","MCD75.HRRAW.T3","MCD75.HRADJ.T3",
-	 "MCD95.HRRAW.T1","MCD95.HRADJ.T1","MCD95.HRRAW.T3","MCD95.HRADJ.T3"
+	 "MCD95.HRRAW.T1","MCD95.HRADJ.T1","MCD95.HRRAW.T3","MCD95.HRADJ.T3",
+	 # maximum stuff
+     "OGK.T3.ALT","ROGK.T3.ALT","ROGK.CH.T3.ALT",
+	 "SEST.BS.T3.ALT","SEST.RK.T3.ALT",
+     "MCDMBP.RAW.T3.ALT","MCDMBP.GMRAW.T3.ALT","MCDMBP.HRRAW.T3.ALT",
+	 	"MCDMBP.GMADJ.T3.ALT","MCDMBP.HRADJ.T3.ALT",
+		"RMCDMBP.T3.ALT","RMCDMBP.CH.T3.ALT",
+     "MCD75.RAW.T3.ALT","MCD75.GMRAW.T3.ALT","MCD75.HRRAW.T3.ALT",
+	 	"MCD75.GMADJ.T3.ALT","MCD75.HRADJ.T3.ALT",
+		"RMCD75.T3.ALT","RMCD75.CH.T3.ALT",
+     "MCD95.RAW.T3.ALT","MCD95.GMRAW.T3.ALT","MCD95.HRRAW.T3.ALT",
+	 	"MCD95.GMADJ.T3.ALT","MCD95.HRADJ.T3.ALT",
+		"RMCD95.T3.ALT","RMCD95.CH.T3.ALT"
    )
  
    dimnames(blockresults)[[3]] <- paste("alpha",alpha,sep="") 
