@@ -17,7 +17,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
     qpalpha.t3 <- qchisq(1-(alpha/nn),df=p)
 	# 2015-01-18 alternate cutoff value given that we are testing a maximum of
 	# iid random variables
-	qpalpha.t3.alt <- qchisq(1-(alpha^(1./nn)),df=p)
+	qpalpha.t3.alt <- qchisq((1-alpha)^(1./nn),df=p)
 
     # compute cutoff values for table1 using new method, these will not change in 
     # the block
@@ -41,16 +41,16 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
       hr05CutoffMvnormal(nn,p,mcd.alpha=0.95,signif.alpha=a/nn,method="GM14")$cutoff.pred)
 	# alternate cutoffs for simultaneous case
     hrmbp.t3.alt <- sapply(alpha, function(a)
-      hr05CutoffMvnormal(nn,p,               signif.alpha=(a^(1./nn)),
+      hr05CutoffMvnormal(nn,p,               signif.alpha=1 - ((1-a)^(1./nn)),
 	  	method="GM14")$cutoff.pred)
     hrmbp.orig.t3.alt <- sapply(alpha, function(a)
-      hr05CutoffMvnormal(nn,p,               signif.alpha=(a^(1./nn)),
+      hr05CutoffMvnormal(nn,p,               signif.alpha=1 - ((1-a)^(1./nn)),
 	  	method="HR")$cutoff.pred)
     hr75.t3.alt <- sapply(alpha, function(a)
-      hr05CutoffMvnormal(nn,p,mcd.alpha=0.75,signif.alpha=(a^(1./nn)),
+      hr05CutoffMvnormal(nn,p,mcd.alpha=0.75,signif.alpha=1 - ((1-a)^(1./nn)),
 	  	method="GM14")$cutoff.pred)
     hr95.t3.alt <- sapply(alpha, function(a)
-      hr05CutoffMvnormal(nn,p,mcd.alpha=0.95,signif.alpha=(a^(1./nn)),
+      hr05CutoffMvnormal(nn,p,mcd.alpha=0.95,signif.alpha=1 - ((1-a)^(1./nn)),
 	  	method="GM14")$cutoff.pred)
 
     alphaind <- seq(along=alpha)
