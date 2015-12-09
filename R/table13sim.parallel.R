@@ -1,5 +1,5 @@
 table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
-    lgf="",mlgf="") {
+    lgf="",mlgf="",maxtries=100) {
 
     # need to push these to cluster init function
     #require(abind,      quietly=TRUE)
@@ -9,7 +9,7 @@ table13sim.parallel <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
     #require(cggRcalibration, quietly=TRUE)
     #require(CerioliOutlierDetection, quietly=TRUE)
 
-    maxtries <- 50
+    #maxtries <- 50
 
     # compute chi-square cutoff value for table1 which will not change in block
     qpalpha.t1 <- qchisq(1.0-alpha,df=p)
