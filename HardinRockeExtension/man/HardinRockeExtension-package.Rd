@@ -3,36 +3,38 @@
 \alias{HardinRockeExtension}
 \docType{package}
 \title{
-What the package does (short line)
+  Package for replicating the results of Hardin and Rocke (2005)
+  and Green and Martin (2014).
 }
 \description{
-More about what it does (maybe more than one line)
+  Package for replicating the results of Hardin and Rocke (2005)
+  and Green and Martin (2014).
 }
 \details{
 \tabular{ll}{
 Package: \tab HardinRockeExtension\cr
 Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2014-02-09\cr
-License: \tab What license is it under?\cr
+Version: \tab 1.0.8\cr
+Date: \tab 2015-12-08\cr
+License: \tab GPL-2\cr
 }
-~~ An overview of how to use the package, including the most important functions ~~
+%~~ An overview of how to use the package, including the most important functions ~~
 }
 \author{
-Who wrote it
-
-Maintainer: Who to complain to <yourfault@somewhere.net>
-~~ The author and/or maintainer of the package ~~
+Written and maintained by Christopher G. Green <christopher.g.green@gmail.com>
 }
 \references{
-~~ Literature or other references for background information ~~
+J. Hardin and D. M. Rocke. The distribution of robust distances. 
+Journal of Computational and Graphical Statistics, 14:928-946, 2005.
 }
-~~ Optionally other standard keywords, one per line, from file KEYWORDS in the R documentation directory ~~
 \keyword{ package }
+\keyword{ robust }
+\keyword{ multivariate }
 \seealso{
-~~ Optional links to other man pages, e.g. ~~
-~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
+  \code{\link[CerioliOutlierDetection:CerioliOutlierDetection-package]{CerioliOutlierDetection}} 
 }
 \examples{
-~~ simple examples of the most important functions ~~
+  \dontrun{
+      hrSim(p=5,n=50  ,N=5000,B=500)
+  }
 }

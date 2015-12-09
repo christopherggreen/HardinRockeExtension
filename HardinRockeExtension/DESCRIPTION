@@ -1,8 +1,8 @@
 Package: HardinRockeExtension
 Type: Package
 Title: Replication and Extension of Hardin and Rocke (2005), Cerioli et al. (2009)
-Version: 1.0.6
-Date: 2015-01-19
+Version: 1.0.8
+Date: 2015-12-08
 Author: Christopher G. Green 
 Maintainer: Christopher G. Green <christopher.g.green@gmail.com> 
 Description: Provides functions and scripts to replicate 
@@ -11,4 +11,4 @@ Description: Provides functions and scripts to replicate
 License: GPL (>= 2) | file LICENSE
 Copyright: Christopher G. Green
 LazyLoad: yes
-Depends: CerioliOutlierDetection, abind, rrcov, mvtnorm
+Imports: CerioliOutlierDetection, abind, rrcov, mvtnorm
