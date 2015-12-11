@@ -1,3 +1,4 @@
+import(robustbase)
 export(
 	hrSim,
 	hrSimParallel,

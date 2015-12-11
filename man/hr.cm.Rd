@@ -2,9 +2,10 @@
 \alias{hr.cm}
 \title{ Hardin and Rocke (2005) corrections for general MCD estimates }
 \description{
-This is a work function to calculate, via simulation, the consistency
-correction ``c'' and the Wishart degrees of freedom ``m'' needed in
-the Hardin and Rocke approximation for ???. This function generalizes
+This is a work function to calculate, via simulation, the (reciprocal)
+consistency correction ``c'' and the Wishart degrees of freedom ``m'' 
+needed in the Hardin and Rocke approximate distribution for the minimum
+covariance estimate (MCD) covariance. This function generalizes
 their work to MCD using data fractions other than the maximum breakdown 
 point case.
 }
@@ -22,99 +23,146 @@ hr.cm(p, n, N, B = 10000,
   \item{alpha}{The significance level to use for detecting outliers.}
   \item{mcd.alpha}{The fraction of the data to use in computing
     MCD. Defaults to the maximum breakdown point fraction. Can
-	be a vector of values, in which case the calculations will
-	be done for each value of \code{mcd.alpha}.}
+  be a vector of values, in which case the calculations will
+  be done for each value of \code{mcd.alpha}.}
   \item{logfile}{Name of file into which to write logging information.}
 }
 \details{
-	For each simulated data set, calculate
-	the covariance of the MCD subset. Then
-	we calculate the sum of the diagonal entries
-	of said covariance matrix and the sum of the 
-	squares of the diagonal entries. The estimate
-	of ``c'', the consistency constant, is then
-	given by the mean of the sums of the diagonal
-	entries. The estimate of ``m'' uses this 
-	estimated ``c'' and an estimate of the variance 
-	of the diagonal elements.
+  For each simulated data set, calculate
+  the covariance of the MCD subset. Then
+  we save the sum of the diagonal entries
+  of said covariance matrix and the sum of the 
+  squares of the diagonal entries. The estimate
+  of ``c'', the reciprocal consistency constant, 
+  is then given by the mean of the sums of the 
+  diagonal entries. The estimate of ``m'' uses this 
+  estimated ``c'' and an estimate of the variance 
+  of the diagonal elements.
 
-	See Joanna Hardin's code cm.R and mcd.est.R.
+  Based on Johanna Hardin's \code{cm.R} and 
+  \code{mcd.est.R} code.
 }
 \value{A data frame with the following columns
-  \item{c}{The estimate of ``c'', the consistency constant}
+  \item{c}{The estimate of ``c'', the reciprocal consistency 
+    constant}
   \item{m}{The estimated Wishart degrees of freedom ``m''}
   \item{mcd.alpha}{The input data fraction(s) \code{mcd.alpha}}
 }
 \references{
 J. Hardin and D. M. Rocke. The distribution of robust distances. 
 Journal of Computational and Graphical Statistics, 14:928-946, 2005.
+
+J. Hardin. R code: to estimate the MCD – \code{mcd.est.r} and 
+to estimate c and m – \code{cm.r}. Available
+from \url{http://pages.pomona.edu/~jsh04747/Research/cm.r}
+and \url{http://pages.pomona.edu/~jsh04747/Research/mcd.est.r}
+respectively. 2005. Accessed December 10, 2015.
 }
 \author{
-Written and maintained by Christopher G. Green <christopher.g.green@gmail.com>
+Written and maintained by Christopher G. Green <christopher.g.green@gmail.com>.
+Based on code by Johanna S. Hardin.
 }
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
 \seealso{
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+  \dontrun{
+    # Monte Carlo simulation to compute the
+    # Wishart degrees of freedom m associated
+    # with the Hardin-Rocke approximation to 
+    # the MCD covariance estimate
+    #
+    # See Hardin and Rocke (2005) for the 
+    # original simulation in the maximum
+    # breakdown point case. 
+    # 
+    # This script extends their work to 
+    # sampling fractions greater than the
+    # maximum breakdown point case 
+    # floor( ( n+v+1 )/2 )/n.
+    #
+	
+    require(parallel)
+    
+	# on Windows we use socket clusters
+	# use whatever parallel backend works best for you
+	# change '4' to the number of nodes/workers/etc. you
+	# want to use
 
-## The function is currently defined as
-function (p, n, N, B = 10000, mcd.alpha = max.bdp.mcd.alpha, 
-    logfile = "hr_cm.log") 
-{
-    n.mcdalpha <- length(mcd.alpha)
-    blockfcn <- function(m, b) {
-        cat("Running block", m, "\n", file = logfile, append = TRUE)
-        simdata <- array(rmvnorm(n * b, mean = rep(0, p), sigma = diag(rep(1, 
-            p))), dim = c(n, p, b))
-        results <- array(NA, dim = c(b, 2, n.mcdalpha))
-        cat("\t Iteration: ", file = logfile, append = TRUE)
-        for (j in 1:b) {
-            if ((j\%\%50) == 0) 
-                cat(j, " ")
-            for (a in 1:n.mcdalpha) {
-                mcd <- CovMcd(simdata[, , j], alpha = mcd.alpha[a])
-                mcd.cov <- if (mcd.alpha[a] == 1) {
-                  mcd@raw.cov
-                }
-                else {
-                  cov(simdata[mcd@best, , j])
-                }
-                results[j, 1, a] <- sum(diag(mcd.cov))
-                results[j, 2, a] <- sum(diag(mcd.cov)^2)
-            }
-        }
-        cat("\nDone with block", m, "\n\n", file = logfile, append = TRUE)
-        results
-    }
-    B <- min(N, B)
-    M <- floor(N/B)
-    blockresults <- lapply(1:M, blockfcn, b = B)
-    r <- N - M * B
-    if (r > 0) {
-        blockresults[[M + 1]] <- blockfcn(m = M + 1, b = r)
-    }
-    blockresults <- do.call("abind", c(blockresults, list(along = 1)))
-    dimnames(blockresults)[[2]] <- c("AVE", "SQ")
-    dimnames(blockresults)[[3]] <- paste("a", gsub("\\.", "", 
-        mcd.alpha), sep = "")
-    mcd.ave <- colSums(blockresults[, "AVE", ])
-    mcd.sq <- colSums(blockresults[, "SQ", ])
-    mcd.c <- mcd.ave/(N * p)
-    mcd.var <- (mcd.sq - (mcd.c * mcd.c * N * p))/(N * p - 1)
-    mcd.m <- 2 * mcd.c * mcd.c/mcd.var
-    data.frame(c = mcd.c, m = mcd.m, mcd.alpha = mcd.alpha)
-  }
+    thecluster <- makePSOCKcluster(4)
+    # make this reproducible
+    clusterSetRNGStream(cl = thecluster, 2014)
+    
+    # initialize each node
+    tmp.rv <- clusterEvalQ( cl = thecluster, {
+      require( CerioliOutlierDetection )
+      require( HardinRockeExtension )
+      N.SIM <- 5000
+      B.SIM <- 250
+     
+      my.pid <- Sys.getpid()
+      cat("My pid is ", my.pid, "\n")
+      logfile <- paste("Simulation_AllAlphas_Parallel_logfile_",my.pid,".txt",sep="")
+      cat("Initialized\n\n", file=logfile)
+    
+      invisible(NULL)
+    })
+    
+    # build the pairs of sample size n and dimension p
+    hr.cm.params <- expand.grid(
+          list(
+          p=c(3,5,7,10,15,20),
+          n=c(50,100,250,500,750,1000)
+        )
+        )
+    # adding more coverage for small sample sizes
+    hr.cm.params <- rbind( hr.cm.params, within( 
+      expand.grid(list(p=c(3,5,7,10,15,20), ratio=c( 3,5,7,9,11 ) )), 
+      {
+        n <- p * ratio
+        rm(ratio)
+      }
+    ))
+    # remove any duplicates
+    hr.cm.params <- unique(hr.cm.params)
+    # want to run most expensive cases first
+    hr.cm.params <- hr.cm.params[ order( hr.cm.params$n, hr.cm.params$p, decreasing=TRUE ), ]
+    
+    # add maximum breakdown point case to the params data set
+    hr.cm.params[,"mbp"] <- apply( hr.cm.params, 1, function(x) floor( (x[2] + x[1] + 1)/2 )/x[2] )
+    
+    # want each case to be a column so that we can use parLapply
+    hr.cm.params <- data.frame(t(as.matrix(hr.cm.params)))
+          
+    mcd.alphas <- c(0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95,0.99,0.995) 
+    clusterExport(cl = thecluster, "hr.cm.params")
+    clusterExport(cl = thecluster, "mcd.alphas")
+    
+    #
+    # using parLapply here to prevent simplification of the
+    # results (as parApply would attempt to do)
+    #
+    cat("Starting run at ", format(Sys.time()), "\n")
+    
+    hr.cm.results.all.pre <- parLapply(cl = thecluster, 
+      X = hr.cm.params[1:5], function(pn) {
+        cat("Starting case p = ",pn[1]," n = ",pn[2]," at time ", 
+          format(Sys.time()), " \n",file=logfile,append=TRUE)
+        results <- hr.cm(p = pn[1] , n = pn[2], N=N.SIM, B=B.SIM, 
+          mcd.alpha=unique(c(pn[3],mcd.alphas)), logfile=logfile)
+        cat("Finished case p = ",pn[1]," n = ",pn[2]," at time ", 
+          format(Sys.time()), " \n",file=logfile,append=TRUE)
+        data.frame(p=pn[1],n=pn[2],mbp=pn[3],results)
+      }
+    )
+    cat("Run completed at ", format(Sys.time()), "\n")
+    
+    stopCluster(thecluster)
+    
+    hr.cm.results.all <- do.call("rbind", hr.cm.results.all.pre )
+    
+    save("hr.cm.results.all", file="hr.cm.results.all.final.rda")
+  }    
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{ robust }
+\keyword{ multivariate }
