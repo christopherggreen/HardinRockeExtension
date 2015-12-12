@@ -14,11 +14,13 @@
 \tabular{ll}{
 Package: \tab HardinRockeExtension\cr
 Type: \tab Package\cr
-Version: \tab 1.0.8\cr
-Date: \tab 2015-12-08\cr
+Version: \tab 1.0.10\cr
+Date: \tab 2015-12-11\cr
 License: \tab GPL-2\cr
 }
-%~~ An overview of how to use the package, including the most important functions ~~
+The \code{hrSim} and \code{hrSimParallel} functions use the
+Hardin and Rocke approximation for the distribution of the MCD
+to 
 }
 \author{
 Written and maintained by Christopher G. Green <christopher.g.green@gmail.com>
