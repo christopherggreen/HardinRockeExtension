@@ -1,10 +1,10 @@
 \name{hrSimParallel}
 \alias{hrSimParallel}
 \title{
-  Replicate Table 1 of Hardin and Rocke (2005)
+  Replicate Tables 1--3 of Hardin and Rocke (2005)
 }
 \description{
-  \code{hrSimParallel} is used to replicate Table 1 of Hardin
+  \code{hrSimParallel} is used to replicate Tables 1--3 of Hardin
   and Rocke (2005), page 942.
 }
 \usage{
@@ -26,8 +26,9 @@ hrSimParallel(cl, p, n, N, B = 10000, alpha = 0.05, mcd.alpha = max.bdp.mcd.alph
     written.}
 }
 \details{
-  This is a work function designed for use in replicating Table 1 of Hardin
-  and Rocke (2005), page 942. 
+  This is a work function designed for use in replicating Tables 1--3 of Hardin
+  and Rocke (2005), pages 942-944. Use different values of \code{alpha} to
+  replicate each of the tables.
 
   Internally the simulation function does \code{B} runs at a time. Set 
   \code{B} smaller if your machine has less memory.
@@ -64,6 +65,8 @@ hrSimParallel(cl, p, n, N, B = 10000, alpha = 0.05, mcd.alpha = max.bdp.mcd.alph
   fraction of outliers detected (which is an estimate of the Type 1 error rate
   of the procedure, since the simulated data had no outliers).
 
+  The vignette ``HardinRocke'' provides a detailed example of how to
+  replicate the data in Hardin and Rocke (2005).
 }
 \references{
 J. Hardin and D. M. Rocke. The distribution of robust distances. 
@@ -79,81 +82,30 @@ Written and maintained by Christopher G. Green <christopher.g.green@gmail.com>
   \dontrun{
     # example of how to replicate some of the 
 	# calculations in Hardin and Rocke (2005)
-	# and Green and Martin (2014)
-  
-    require( parallel )
     
     # on Windows you must use socket clusters
     # Linux/UNIX supports other types of clusters
     # 
     # Change '4' to reflect the number of 
     # cores/processors you want to use
+    require( parallel )
     thecluster <- makePSOCKcluster(4)
   
-    N.SIM <- 5000
-    B.SIM <- 500
-
     # initialize each node
     tmp.rv <- clusterEvalQ( cl = thecluster, {
       require( CerioliOutlierDetection )
       require( HardinRockeExtension )
 
-      my.pid <- Sys.getpid()
-      cat("My pid is ", my.pid, "\n")
-      logfile <- paste("Test_Old_Method_Parallel_logfile_",my.pid,".txt",sep="")
-      cat("Initialized\n\n", file=logfile)
-
       invisible(NULL)
     })
     
-    # want each case to be a column so that we can use parLapply
-    hr.cases <- as.matrix(expand.grid(list(p=c(5,10,20),n=c(50,100,500,1000),
-      mcd.alpha=c(0.65,0.75,0.85,0.95,0.99))))
-    hr.cases <- rbind(cbind(hr.cases,FALSE),
-      t(apply(as.matrix(expand.grid(list(p=c(5,10,20),n=c(50,100,500,1000)))),
-      1,function(x) c(x,mcd.alpha=floor( (x[2] + x[1] + 1)/2 )/x[2],mbp=TRUE) )))
-    hr.cases <- unique(hr.cases)
-    hr.cases <- hr.cases[ order(hr.cases[,"mcd.alpha"]),]
-    hr.cases <- hr.cases[ order(hr.cases[,"n"],decreasing=TRUE),]
-    dimnames(hr.cases)[[2]] <- c("p","n","mcd.alpha","mbp")
-    hr.cases <- data.frame(t(hr.cases))
-
-    # using parLapply here to prevent simplification of the
-    # results (as parApply would attempt to do)
-    hrResults <- lapply(hr.cases, function(pn,clst,ns,bs) {
-      cat("Trial p = ",pn[1]," n = ",pn[2],"\n")
-      hrSimParallel(cl=clst, p = pn[1] , n = pn[2], 
-        mcd.alpha=pn[3], N=ns, B=bs, lgf=logfile)
-    }, clst=thecluster, ns=N.SIM, bs=B.SIM)
+	# compare to Hardin and Rocke, Table 1
+    results <- hrSimParallel(cl=thecluster, p = 5, n = 500, 
+		N=5000, B=125, lgf="logfile.txt")
+	colMeans(results)
     
     stopCluster(thecluster)
 	
-    # calculate column means for each result
-    allmeans <- as.data.frame(t(rbind( hr.cases, 
-      100*sapply( hrResults, function(x) colMeans(x) )
-    )))
-    row.names(allmeans) <- NULL
-    
-    # calculate column stdevs for each result
-    allstds <- as.data.frame(t(rbind( hr.cases, 
-      100*sapply( hrResults, function(x) apply(x,2,sd) )
-    )))
-    row.names(allstds) <- NULL
-    
-    # format for easier comparision to hardin and rocke paper
-    reshape(allmeans[,c("p","n","CHI2.CON")  ], 
-      direction="wide", idvar="p",timevar="n")
-    reshape(allmeans[,c("p","n","HRASY.CON") ], 
-      direction="wide", idvar="p",timevar="n")
-    reshape(allmeans[,c("p","n","HRPRED.CON")], 
-      direction="wide", idvar="p",timevar="n")
-    
-    reshape(allstds[,c("p","n","CHI2.CON")   ], 
-      direction="wide", idvar="p",timevar="n")
-    reshape(allstds[,c("p","n","HRASY.CON")  ], 
-      direction="wide", idvar="p",timevar="n")
-    reshape(allstds[,c("p","n","HRPRED.CON") ], 
-      direction="wide", idvar="p",timevar="n")
   }
 }
 \keyword{ robust }

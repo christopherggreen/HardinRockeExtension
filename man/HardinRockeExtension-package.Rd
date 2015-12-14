@@ -14,8 +14,8 @@
 \tabular{ll}{
 Package: \tab HardinRockeExtension\cr
 Type: \tab Package\cr
-Version: \tab 1.0.10\cr
-Date: \tab 2015-12-11\cr
+Version: \tab 1.0.11\cr
+Date: \tab 2015-12-13\cr
 License: \tab GPL-2\cr
 }
 The \code{hrSim} and \code{hrSimParallel} functions use the
@@ -26,6 +26,11 @@ to
 Written and maintained by Christopher G. Green <christopher.g.green@gmail.com>
 }
 \references{
+C. G. Green and R. Douglas Martin. An extension of a method of Hardin and Rocke, with
+  an application to multivariate outlier detection via the IRMCD method of Cerioli.
+  Working Paper, 2014. Available from 
+  \url{http://students.washington.edu/cggreen/uwstat/papers/cerioli_extension.pdf}
+
 J. Hardin and D. M. Rocke. The distribution of robust distances. 
 Journal of Computational and Graphical Statistics, 14:928-946, 2005.
 }

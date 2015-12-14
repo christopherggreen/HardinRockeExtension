@@ -1,12 +1,12 @@
 \name{hrSimNewParallel}
 \alias{hrSimNewParallel}
 \title{
-  Calculate Table 1 of Hardin and Rocke (2005) using the
+  Calculate Tables 1--3 of Hardin and Rocke (2005) using the
   method of Green and Martin (2014)
 }
 \description{
   \code{hrSimNewParallel} is used to calculate statistics like those presented
-  in Table 1 of Hardin and Rocke (2005), page 942, but with the 
+  in Tables 1--3 of Hardin and Rocke (2005), page 942, but with the 
   modified asymptotic formulas calculated in Green and Martin (2014).
 
   \code{hrSimNewParallel} is a parallel version of \code{hrSimNew}.
@@ -30,8 +30,8 @@ hrSimNewParallel(cl, p, n, N, B = 10000, alpha = 0.05, mcd.alpha = max.bdp.mcd.a
     written.}
 }
 \details{
-  This is a work function designed for use in replicating Table 1 of Hardin
-  and Rocke (2005), page 942, but using the asymptotic method of 
+  This is a work function designed for use in replicating Tables 1--3 
+  of Hardin and Rocke (2005), page 942, but using the asymptotic method of 
   Green and Martin (2014) instead of the Hardin-Rocke method.
 
   Internally the simulation function does \code{B} runs at a time. Set 
@@ -71,19 +71,19 @@ hrSimNewParallel(cl, p, n, N, B = 10000, alpha = 0.05, mcd.alpha = max.bdp.mcd.a
 
 }
 \references{
-C. G. Green and R. Douglas Martin. An extension of a method of Hardin and Rocke, with
-  an application to multivariate outlier detection via the IRMCD method of Cerioli.
-  Working Paper, 2014. Available from 
-  \url{http://students.washington.edu/cggreen/uwstat/papers/cerioli_extension.pdf}
+  C. G. Green and R. Douglas Martin. An extension of a method of Hardin and Rocke, with
+    an application to multivariate outlier detection via the IRMCD method of Cerioli.
+    Working Paper, 2014. Available from 
+    \url{http://students.washington.edu/cggreen/uwstat/papers/cerioli_extension.pdf}
 
-J. Hardin and D. M. Rocke. The distribution of robust distances. 
-Journal of Computational and Graphical Statistics, 14:928-946, 2005.
+  J. Hardin and D. M. Rocke. The distribution of robust distances. 
+    Journal of Computational and Graphical Statistics, 14:928-946, 2005.
 }
 \author{
 Written and maintained by Christopher G. Green <christopher.g.green@gmail.com>
 }
 \seealso{
-\code{\link{hrSim}}, \code{\link{hrSimNew}}
+\code{\link{hrSim}}, \code{\link{hrSimParallel}}, \code{\link{hrSimNew}}
 }
 \examples{
   \dontrun{

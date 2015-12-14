@@ -34,11 +34,11 @@ table1sim.parallel <- function(cl,p,nn,N,B=10000,alpha=c(0.01,0.025,0.05),
       # compute cutoff values using new method, these will not change in 
       # the block
       hr50 <- sapply(alpha, function(a)
-        hr05CutoffMvnormal(nn,p,               signif.alpha=a,method="GM14")$cutoff.pred)
+        hr05CutoffMvnormal(nn,p,               signif.alpha=a,method=cutoff.method)$cutoff.pred)
       hr75 <- sapply(alpha, function(a)
-        hr05CutoffMvnormal(nn,p,mcd.alpha=0.75,signif.alpha=a,method="GM14")$cutoff.pred)
+        hr05CutoffMvnormal(nn,p,mcd.alpha=0.75,signif.alpha=a,method=cutoff.method)$cutoff.pred)
       hr95 <- sapply(alpha, function(a)
-        hr05CutoffMvnormal(nn,p,mcd.alpha=0.95,signif.alpha=a,method="GM14")$cutoff.pred)
+        hr05CutoffMvnormal(nn,p,mcd.alpha=0.95,signif.alpha=a,method=cutoff.method)$cutoff.pred)
       alphaind <- seq(along=alpha)
 
       cat("p = ",p,"nn = ",nn,"b = ",b,"\n", file=lgf, append=TRUE)
