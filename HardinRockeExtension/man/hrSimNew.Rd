@@ -1,12 +1,12 @@
 \name{hrSimNew}
 \alias{hrSimNew}
 \title{
-  Calculate Table 1 of Hardin and Rocke (2005) using the
+  Calculate Tables 1--3 of Hardin and Rocke (2005) using the
   method of Green and Martin (2014)
 }
 \description{
   \code{hrSimNew} is used to calculate statistics like those presented
-  in Table 1 of Hardin and Rocke (2005), page 942, but with the 
+  in Tables 1--3 of Hardin and Rocke (2005), page 942, but with the 
   modified asymptotic formulas calculated in Green and Martin (2014).
 }
 \usage{
@@ -24,9 +24,11 @@ hrSimNew(p, n, N, B = 10000, alpha = 0.05, mcd.alpha = max.bdp.mcd.alpha(n, p))
     MCD. Defaults to the maximum breakdown point fraction.}
 }
 \details{
-  This is a work function designed for use in replicating Table 1 of Hardin
+  This is a work function designed for use in replicating Tables 1--3 of Hardin
   and Rocke (2005), page 942, but using the asymptotic method of 
-  Green and Martin (2014) instead of the Hardin-Rocke method.
+  Green and Martin (2014) instead of the Hardin-Rocke method. The 
+  Green and Martin method is more accurate for MCD fractions other than
+  the maximum breakdown point one.
 
   Internally the simulation function does \code{B} runs at a time. Set 
   \code{B} smaller if your machine has less memory.
@@ -61,100 +63,27 @@ hrSimNew(p, n, N, B = 10000, alpha = 0.05, mcd.alpha = max.bdp.mcd.alpha(n, p))
 
 }
 \references{
-C. G. Green and R. Douglas Martin. An extension of a method of Hardin and Rocke, with
-  an application to multivariate outlier detection via the IRMCD method of Cerioli.
-  Working Paper, 2014. Available from 
-  \url{http://students.washington.edu/cggreen/uwstat/papers/cerioli_extension.pdf}
+  C. G. Green and R. Douglas Martin. An extension of a method of Hardin and Rocke, with
+    an application to multivariate outlier detection via the IRMCD method of Cerioli.
+    Working Paper, 2014. Available from 
+    \url{http://students.washington.edu/cggreen/uwstat/papers/cerioli_extension.pdf}
 
-J. Hardin and D. M. Rocke. The distribution of robust distances. 
-Journal of Computational and Graphical Statistics, 14:928-946, 2005.
+  J. Hardin and D. M. Rocke. The distribution of robust distances. 
+    Journal of Computational and Graphical Statistics, 14:928-946, 2005.
 }
 \author{
 Written and maintained by Christopher G. Green <christopher.g.green@gmail.com>
 }
+\note{
+  This function is deprecated; use \code{\link{hrSimNewParallel}} instead.
+}
 \seealso{
-\code{\link{hrSim}}
+\code{\link{covMcd}}, \code{\link{hrSimParallel}}, \code{\link{hrSim}},
+\code{\link{hrSimNewParallel}}
 }
 \examples{
-  \dontrun{
-    # non-parallel version
-    # shown only for illustration---use the parallel
-    # version if you can!
-    
     require( CerioliOutlierDetection )
-    
-    N.SIM <- 5000
-    B.SIM <- 500
-    
-    hrResults.p5.n50   <- hrSimNew(p=5,n=50  ,N=N.SIM,B=B.SIM)
-    
-  }
-
-  \dontrun{
-    # parallel version
-  
-    require( parallel )
-    
-    # on Windows you must use socket clusters
-    # Linux/UNIX supports other types of clusters
-    # 
-    # Change '4' to reflect the number of 
-    # cores/processors you want to use
-    thecluster <- makePSOCKcluster(4)
-  
-    # initialize each node
-    tmp.rv <- clusterEvalQ( cl = thecluster, {
-      require( CerioliOutlierDetection )
-      require( HardinRockeExtension )
-      N.SIM <- 5000
-      B.SIM <- 500
-      NULL
-    })
-    
-    # want each case to be a column so that we can use parLapply
-    hr.cases <- data.frame(t(as.matrix(expand.grid(list(
-      p=c(5,10,20),n=c(50,100,500,1000))))))
-    clusterExport(cl = thecluster, "hr.cases")
-    
-    # using parLapply here to prevent simplification of the
-    # results (as parApply would attempt to do)
-    hrResults <- parLapply(cl = thecluster, 
-      X = hr.cases, function(pn) {
-        #cat("Trial p = ",p," n = ",n,"\n")
-        hrSimNew(p = pn[1] , n = pn[2], N=N.SIM, B=B.SIM)
-      }
-    )
-    
-    stopCluster(thecluster)
-    
-    # calculate column means for each result
-    allmeans <- as.data.frame(t(rbind( hr.cases, 
-      100*sapply( hrResults, function(x) colMeans(x) )
-    )))
-    row.names(allmeans) <- NULL
-    
-    # calculate column stdevs for each result
-    allstds <- as.data.frame(t(rbind( hr.cases, 
-      100*sapply( hrResults, function(x) apply(x,2,sd) )
-    )))
-    row.names(allstds) <- NULL
-    
-    # format for easier comparision to hardin and rocke paper
-    reshape(allmeans[,c("p","n","CHI2.CON")  ], 
-      direction="wide", idvar="p",timevar="n")
-    reshape(allmeans[,c("p","n","CGASY.CON") ], 
-      direction="wide", idvar="p",timevar="n")
-    reshape(allmeans[,c("p","n","CGPRED.CON")], 
-      direction="wide", idvar="p",timevar="n")
-    
-    reshape(allstds[,c("p","n","CHI2.CON")   ], 
-      direction="wide", idvar="p",timevar="n")
-    reshape(allstds[,c("p","n","CGASY.CON")  ], 
-      direction="wide", idvar="p",timevar="n")
-    reshape(allstds[,c("p","n","CGPRED.CON") ], 
-      direction="wide", idvar="p",timevar="n")
-  
-  }
+    hrResults.p5.n50   <- hrSimNew(p=5,n=50  ,N=50,B=50)
 }
 \keyword{ robust }
 \keyword{ multivariate }
