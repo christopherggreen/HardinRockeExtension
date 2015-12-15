@@ -1,0 +1,460 @@
+
+R version 3.2.2 (2015-08-14) -- "Fire Safety"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> ### R code from vignette source '/homes/cggreen/r/lib/HardinRockeExtension/doc/HardinRocke.Rnw'
+> ### Encoding: UTF-8
+> 
+> ###################################################
+> ### code chunk number 1: init
+> ###################################################
+> 
+> 
+> 
+> ###################################################
+> ### code chunk number 2: setup (eval = FALSE)
+> ###################################################
+> # Replicate Table 1 in Hardin and Rocke (2005),
+> # page 942
+> #
+> # Christopher G. Green
+> # 2014-02-24
+> #
+> # run simulations in parallel
+> 
+> require( RhpcBLASctl             )
+Loading required package: RhpcBLASctl
+> require( parallel )
+Loading required package: parallel
+> require( CerioliOutlierDetection )
+Loading required package: CerioliOutlierDetection
+> require( HardinRockeExtension )
+Loading required package: HardinRockeExtension
+> 
+> # force single-threaded BLAS if possible
+> omp_set_num_threads(1)
+> 
+> ###################################################
+> ### code chunk number 3: makecluster (eval = FALSE)
+> ###################################################
+> #thecluster <- makePSOCKcluster(10)
+> 
+> thecluster <- makePSOCKcluster(
++ 	c(
++ 		rep("student1",1),
++ 		rep("student2",1),
++ 		rep("student3",1),
++ 		rep("student4",1),
++ 		rep("student5",1),
++ 		rep("student6",1),
++ 		rep("student7",1),
++ 		rep("student8",1),
++ 		rep("student9",1),
++ 		rep("student10",1),
++ 		rep("student11",0),
++ 		rep("student12",0),
++ 		rep("student13",0),
++ 		rep("student14",0),
++ 		rep("student15",0),
++ 		rep("student16",0),
++ 		rep("laplace1",0),
++ 		rep("laplace2",0),
++ 		rep("laplace3",0),
++ 		rep("laplace4",0),
++ 		rep("laplace5",0),
++ 		rep("laplace6",0),
++ 		rep("laplace7",0),
++ 		rep("laplace8",0),
++ 		rep("laplace9",0),
++ 		rep("laplace10",0),
++ 		rep("laplace11",0),
++ 		rep("laplace12",0),
++ 		rep("laplace13",0),
++ 		rep("laplace14",0),
++ 		rep("laplace15",0),
++ 		rep("laplace16",0),
++ 		rep("newton1",0),
++ 		rep("newton2",0)
++ 	),
++ 	outfile="~/hr05/hr05_replicate.log",
++ 	useXDR=FALSE # these are all little endian machines
++ )
+> 
+> # make reproducible
+> clusterSetRNGStream(cl = thecluster, 2015)
+> 
+> ###################################################
+> ### code chunk number 4: setsimsize (eval = FALSE)
+> ###################################################
+> N.SIM <- 5000
+> B.SIM <- 500
+> 
+> 
+> ###################################################
+> ### code chunk number 5: clusterinit (eval = FALSE)
+> ###################################################
+> # initialize each node
+> tmp.rv <- clusterEvalQ( cl = thecluster, {
++   require( CerioliOutlierDetection )
++   require( HardinRockeExtension )
++   require( mvtnorm )
++ 
++   my.pid <- Sys.getpid()
++   cat("My pid is ", my.pid, "\n")
++   my.nodename <- gsub("\\.stat\\.washington\\.edu","",Sys.info()["nodename"])
++   cat("My pid is ", my.pid, " on node ", my.nodename, "\n")
++   logfile <- paste("~/hr05/Test_Old_Method_Parallel_logfile_",my.nodename,"_",my.pid,".txt",sep="")
++   Sys.sleep(30)
++   cat("Initialized\n\n", file=logfile)
++   cat("My pid is ", my.pid, "on node ", my.nodename, "\n",file=logfile,append=TRUE)
++ 
++   invisible(NULL)
++ })
+> 
+> 
+> ###################################################
+> ### code chunk number 6: buildcases (eval = FALSE)
+> ###################################################
+> # want each case to be a column so that we can use parLapply
+> hr.cases <- as.matrix(expand.grid(list(p=c(5,10,20),n=c(50,100,500,1000),
++   mcd.alpha=c(0.65,0.75,0.85,0.95,0.99))))
+> hr.cases <- rbind(cbind(hr.cases,FALSE),
++   t(apply(as.matrix(expand.grid(list(p=c(5,10,20),n=c(50,100,500,1000)))),
++     1,function(x) c(x,mcd.alpha=floor( (x[2] + x[1] + 1)/2 )/x[2],mbp=TRUE) )))
+> hr.cases <- unique(hr.cases)
+> hr.cases <- hr.cases[ order(hr.cases[,"mcd.alpha"]),]
+> hr.cases <- hr.cases[ order(hr.cases[,"n"],decreasing=TRUE),]
+> dimnames(hr.cases)[[2]] <- c("p","n","mcd.alpha","mbp")
+> hr.cases <- data.frame(t(hr.cases))
+> 
+> cat("Params used:\n", file="hrcases.txt")
+> sink( "hrcases.txt", append=TRUE)
+> print( hr.cases )
+> cat("ncol of params:", ncol(hr.cases),"\n", file="hrcases.txt", append=TRUE)
+> cat("N.SIM:",N.SIM,"\n", file="hrcases.txt", append=TRUE)
+> sink( )
+> 
+> ###################################################
+> ### code chunk number 7: runsim (eval = FALSE)
+> ###################################################
+> cat("Starting run at ", format(Sys.time()), "\n")
+Starting run at  2015-12-14 00:00:44 
+> 
+> hrResults <- lapply(hr.cases, function(pn,clst,ns,bs) {
++     cat("Trial p = ",pn[1]," n = ",pn[2],"\n")
++     hrSimParallel(cl=clst, p = pn[1] , n = pn[2], 
++       mcd.alpha=pn[3], alpha=0.05, N=ns, B=bs, lgf=logfile)
++   }, clst=thecluster, ns=N.SIM, bs=B.SIM
++ )
+Trial p =  5  n =  1000 
+Trial p =  10  n =  1000 
+Trial p =  20  n =  1000 
+Trial p =  5  n =  1000 
+Trial p =  10  n =  1000 
+Trial p =  20  n =  1000 
+Trial p =  5  n =  1000 
+Trial p =  10  n =  1000 
+Trial p =  20  n =  1000 
+Trial p =  5  n =  1000 
+Trial p =  10  n =  1000 
+Trial p =  20  n =  1000 
+Trial p =  5  n =  1000 
+Trial p =  10  n =  1000 
+Trial p =  20  n =  1000 
+Trial p =  5  n =  1000 
+Trial p =  10  n =  1000 
+Trial p =  20  n =  1000 
+Trial p =  5  n =  500 
+Trial p =  10  n =  500 
+Trial p =  20  n =  500 
+Trial p =  5  n =  500 
+Trial p =  10  n =  500 
+Trial p =  20  n =  500 
+Trial p =  5  n =  500 
+Trial p =  10  n =  500 
+Trial p =  20  n =  500 
+Trial p =  5  n =  500 
+Trial p =  10  n =  500 
+Trial p =  20  n =  500 
+Trial p =  5  n =  500 
+Trial p =  10  n =  500 
+Trial p =  20  n =  500 
+Trial p =  5  n =  500 
+Trial p =  10  n =  500 
+Trial p =  20  n =  500 
+Trial p =  5  n =  100 
+Trial p =  10  n =  100 
+Trial p =  20  n =  100 
+Trial p =  5  n =  100 
+Trial p =  10  n =  100 
+Trial p =  20  n =  100 
+Trial p =  5  n =  100 
+Trial p =  10  n =  100 
+Trial p =  20  n =  100 
+Trial p =  5  n =  100 
+Trial p =  10  n =  100 
+Trial p =  20  n =  100 
+Trial p =  5  n =  100 
+Trial p =  10  n =  100 
+Trial p =  20  n =  100 
+Trial p =  5  n =  100 
+Trial p =  10  n =  100 
+Trial p =  20  n =  100 
+Trial p =  5  n =  50 
+Trial p =  10  n =  50 
+Trial p =  5  n =  50 
+Trial p =  10  n =  50 
+Trial p =  20  n =  50 
+Trial p =  20  n =  50 
+Trial p =  5  n =  50 
+Trial p =  10  n =  50 
+Trial p =  20  n =  50 
+Trial p =  5  n =  50 
+Trial p =  10  n =  50 
+Trial p =  20  n =  50 
+Trial p =  5  n =  50 
+Trial p =  10  n =  50 
+Trial p =  20  n =  50 
+Trial p =  5  n =  50 
+Trial p =  10  n =  50 
+Trial p =  20  n =  50 
+> 
+> cat("Run completed at ", format(Sys.time()), "\n")
+Run completed at  2015-12-14 02:45:23 
+> stopCluster(thecluster)
+> 
+> save(hrResults, file="hrResults.20151213.rda")
+> save(hr.cases, file="hr.cases.20151213.rda")
+> 
+> ###################################################
+> ### code chunk number 8: calcstats (eval = FALSE)
+> ###################################################
+> 
+> allmeans <- as.data.frame(t(rbind( hr.cases, 
++   100*sapply( hrResults, function(x) colMeans(x) )
++ )))
+> row.names(allmeans) <- NULL
+> allmeans$n <- factor(sprintf("%04d", allmeans$n), ordered=TRUE)
+> allmeans$mcd.alpha <- sprintf("%0.3f", allmeans$mcd.alpha)
+> allmeans$mcd.alpha[ allmeans$mbp==1 ] <- "MBP"
+> allmeans$mcd.alpha <- factor(allmeans$mcd.alpha)
+> 
+> allstds <- as.data.frame(t(rbind( hr.cases, 
++   100*sapply( hrResults, function(x) apply(x,2,sd) )
++ )))
+> row.names(allstds) <- NULL
+> allstds$n <- factor(sprintf("%04d", allstds$n), ordered=TRUE)
+> allstds$mcd.alpha <- sprintf("%0.3f", allstds$mcd.alpha)
+> allstds$mcd.alpha[ allstds$mbp==1 ] <- "MBP"
+> allstds$mcd.alpha <- factor(allstds$mcd.alpha)
+> 
+> allmeans.mbp <- subset( allmeans, mbp==1 )
+> allstds.mbp  <- subset( allstds , mbp==1 )
+> 
+> ###################################################
+> ### code chunk number 9: tabularize (eval = FALSE)
+> ###################################################
+> # format for easier comparision to hardin and rocke paper
+> # just the mbp cases first
+> 
+> cat("Just MBP values of mcd.alpha.\n")
+Just MBP values of mcd.alpha.
+> cat("Means:\n")
+Means:
+> print(reshape(allmeans.mbp[,c("p","n","CHI2.CON")  ],
++   direction="wide", idvar=c("p"),timevar="n")[,c(1,5:2)])
+   p CHI2.CON.0050 CHI2.CON.0100 CHI2.CON.0500 CHI2.CON.1000
+1  5       27.3188       18.6168       7.51444       6.23718
+2 10       30.6660       27.4622       9.03160       6.90762
+3 20       17.9920       29.8200      13.03192       8.75592
+> print(reshape(allmeans.mbp[,c("p","n","HRASY.CON") ], 
++   direction="wide", idvar=c("p"),timevar="n")[,c(1,5:2)])
+   p HRASY.CON.0050 HRASY.CON.0100 HRASY.CON.0500 HRASY.CON.1000
+1  5         1.0288         3.4296        4.76268        4.90702
+2 10         0.5384         2.6896        4.58356        4.79892
+3 20         0.0312         0.8926        4.03020        4.63242
+> print(reshape(allmeans.mbp[,c("p","n","HRPRED.CON")], 
++   direction="wide", idvar=c("p"),timevar="n")[,c(1,5:2)])
+   p HRPRED.CON.0050 HRPRED.CON.0100 HRPRED.CON.0500 HRPRED.CON.1000
+1  5          6.1596          6.6062         5.22752         5.08748
+2 10          6.8868          6.8174         5.17184         5.01616
+3 20          5.0400          4.3734         4.67764         4.80724
+> 
+> cat("Standard deviations:\n")
+Standard deviations:
+> print(reshape(allstds.mbp[,c("p","n","CHI2.CON")   ],
++   direction="wide", idvar=c("p"),timevar="n")[,c(1,5:2)])
+   p CHI2.CON.0050 CHI2.CON.0100 CHI2.CON.0500 CHI2.CON.1000
+1  5     5.4800340      4.993370      1.546277     0.9663387
+2 10     1.5877494      4.063185      1.573096     0.9535606
+3 20     0.1262505      1.347577      1.745863     1.0225762
+> print(reshape(allstds.mbp[,c("p","n","HRASY.CON")  ],
++   direction="wide", idvar=c("p"),timevar="n")[,c(1,5:2)])
+   p HRASY.CON.0050 HRASY.CON.0100 HRASY.CON.0500 HRASY.CON.1000
+1  5      2.0246457       2.887128       1.251546      0.8609768
+2 10      1.3943150       2.389810       1.136477      0.8019423
+3 20      0.2895571       1.209528       1.001184      0.7464679
+> print(reshape(allstds.mbp[,c("p","n","HRPRED.CON") ], 
++   direction="wide", idvar=c("p"),timevar="n")[,c(1,5:2)])
+   p HRPRED.CON.0050 HRPRED.CON.0100 HRPRED.CON.0500 HRPRED.CON.1000
+1  5        5.028358        3.873412        1.315996       0.8796829
+2 10        4.823260        3.606641        1.206639       0.8172591
+3 20        3.413727        2.613377        1.080410       0.7592963
+> 
+> # all values of mcd.alpha
+> cat("All values of mcd.alpha.\n")
+All values of mcd.alpha.
+> cat("Means:\n")
+Means:
+> print(reshape(allmeans[,c("p","n","mcd.alpha","CHI2.CON")  ],
++   direction="wide", idvar=c("mcd.alpha","p"),timevar="n")[,c(1:2,6:3)])
+    p mcd.alpha CHI2.CON.0050 CHI2.CON.0100 CHI2.CON.0500 CHI2.CON.1000
+1   5       MBP       27.3188       18.6168       7.51444       6.23718
+2  10       MBP       30.6660       27.4622       9.03160       6.90762
+3  20       MBP       17.9920       29.8200      13.03192       8.75592
+4   5     0.650       20.9956       12.8096       6.34584       5.66254
+5  10     0.650       27.0000       21.1480       7.48980       6.18042
+6  20     0.650       21.9716       26.2778      10.40612       7.48244
+7   5     0.750       15.1668       10.3754       5.93600       5.45448
+8  10     0.750       19.6800       16.4940       6.81632       5.87494
+9  20     0.750       15.9936       19.2606       9.16580       6.92724
+10  5     0.850       11.3112        8.5006       5.66848       5.32416
+11 10     0.850       11.9932       12.3886       6.37028       5.67490
+12 20     0.850       10.0000       11.9260       8.25664       6.51738
+13  5     0.950        5.9596        5.1920       5.07560       5.05102
+14 10     0.950        4.1988        5.1906       5.14336       5.09792
+15 20     0.950        4.0052        4.1370       5.01072       5.08750
+16  5     0.990        3.6144        4.2116       4.85716       4.91942
+17 10     0.990        2.8164        3.6786       4.73160       4.86190
+18 20     0.990        2.0704        2.6424       4.52512       4.75894
+> print(reshape(allmeans[,c("p","n","mcd.alpha","HRASY.CON") ], 
++   direction="wide", idvar=c("mcd.alpha","p"),timevar="n")[,c(1:2,6:3)])
+    p mcd.alpha HRASY.CON.0050 HRASY.CON.0100 HRASY.CON.0500 HRASY.CON.1000
+1   5       MBP         1.0288         3.4296        4.76268        4.90702
+2  10       MBP         0.5384         2.6896        4.58356        4.79892
+3  20       MBP         0.0312         0.8926        4.03020        4.63242
+4   5     0.650         0.2568         1.2936        3.86184        4.39162
+5  10     0.650         0.1960         1.0310        3.55500        4.21816
+6  20     0.650         0.1516         0.4488        2.81360        3.78582
+7   5     0.750         0.0400         0.6994        3.54852        4.21914
+8  10     0.750         0.0208         0.3850        3.14568        3.97708
+9  20     0.750         0.0128         0.1012        2.29868        3.44436
+10  5     0.850         0.0100         0.4022        3.33812        4.09972
+11 10     0.850         0.0008         0.1618        2.84412        3.82060
+12 20     0.850         0.0000         0.0208        1.92588        3.18444
+13  5     0.950         0.0020         0.2348        3.16212        4.00628
+14 10     0.950         0.0000         0.0698        2.62384        3.68312
+15 20     0.950         0.0000         0.0036        1.69616        2.98126
+16  5     0.990         0.0000         0.1646        2.72408        3.75420
+17 10     0.990         0.0000         0.0456        1.89300        3.18936
+18 20     0.990         0.0000         0.0012        1.02144        2.12182
+> print(reshape(allmeans[,c("p","n","mcd.alpha","HRPRED.CON")], 
++   direction="wide", idvar=c("mcd.alpha","p"),timevar="n")[,c(1:2,6:3)])
+    p mcd.alpha HRPRED.CON.0050 HRPRED.CON.0100 HRPRED.CON.0500 HRPRED.CON.1000
+1   5       MBP          6.1596          6.6062         5.22752         5.08748
+2  10       MBP          6.8868          6.8174         5.17184         5.01616
+3  20       MBP          5.0400          4.3734         4.67764         4.80724
+4   5     0.650          2.8892          3.2036         4.27344         4.56150
+5  10     0.650          4.3796          3.4150         4.07040         4.41926
+6  20     0.650          8.3588          2.8378         3.31376         3.94284
+7   5     0.750          1.0856          2.0398         3.94328         4.38384
+8  10     0.750          1.5760          1.8438         3.61984         4.17104
+9  20     0.750          3.5852          1.1268         2.73364         3.59006
+10  5     0.850          0.5436          1.3640         3.72300         4.26534
+11 10     0.850          0.4964          1.0202         3.28880         4.00930
+12 20     0.850          1.0036          0.4320         2.30752         3.32094
+13  5     0.950          0.2272          0.9734         3.52340         4.16116
+14 10     0.950          0.1188          0.5878         3.05748         3.85964
+15 20     0.950          0.1568          0.1602         2.04652         3.11630
+16  5     0.990          0.1428          0.5916         3.06612         3.91010
+17 10     0.990          0.0708          0.3630         2.22512         3.35564
+18 20     0.990          0.0704          0.0930         1.10780         2.22538
+> 
+> cat("Standard deviations:\n")
+Standard deviations:
+> print(reshape(allstds[,c("p","n","mcd.alpha","CHI2.CON")   ],
++   direction="wide", idvar=c("mcd.alpha","p"),timevar="n")[,c(1:2,6:3)])
+    p mcd.alpha CHI2.CON.0050 CHI2.CON.0100 CHI2.CON.0500 CHI2.CON.1000
+1   5       MBP     5.4800340     4.9933701     1.5462774     0.9663387
+2  10       MBP     1.5877494     4.0631851     1.5730964     0.9535606
+3  20       MBP     0.1262505     1.3475768     1.7458633     1.0225762
+4   5     0.650     4.9364009     3.6473015     1.2352019     0.8212464
+5  10     0.650     1.4205645     3.5635145     1.2589158     0.8309060
+6  20     0.650     0.2366530     1.1717089     1.4595769     0.8820313
+7   5     0.750     3.9879015     3.0668479     1.1227235     0.7536694
+8  10     0.750     0.8256733     2.9733032     1.1655683     0.7842710
+9  20     0.750     0.1129672     0.7823107     1.2929365     0.8130229
+10  5     0.850     2.6711386     2.5146102     1.0006991     0.7208746
+11 10     0.850     0.1231129     1.6446675     1.0606591     0.7111098
+12 20     0.850     0.0000000     0.2670922     1.1634323     0.7381903
+13  5     0.950     0.9178978     0.9375030     0.6465294     0.4878018
+14 10     0.950     0.6938118     0.5552777     0.4685849     0.4029841
+15 20     0.950     0.1018579     0.4488555     0.3792121     0.3169824
+16  5     0.990     1.8583873     1.6316120     0.7792703     0.5586334
+17 10     0.990     1.3589188     1.6146280     0.7852368     0.5622825
+18 20     0.990     0.3855821     1.3458397     0.7965274     0.5662051
+> print(reshape(allstds[,c("p","n","mcd.alpha","HRASY.CON")  ],
++   direction="wide", idvar=c("mcd.alpha","p"),timevar="n")[,c(1:2,6:3)])
+    p mcd.alpha HRASY.CON.0050 HRASY.CON.0100 HRASY.CON.0500 HRASY.CON.1000
+1   5       MBP     2.02464575     2.88712849      1.2515464      0.8609768
+2  10       MBP     1.39431498     2.38981047      1.1364770      0.8019423
+3  20       MBP     0.28955713     1.20952794      1.0011835      0.7464679
+4   5     0.650     0.86983049     1.39520191      0.9843747      0.7276852
+5  10     0.650     0.74625423     1.23658596      0.9000272      0.6941402
+6  20     0.650     0.65505974     0.80963551      0.7958729      0.6460622
+7   5     0.750     0.29396817     0.92087417      0.8892041      0.6811582
+8  10     0.750     0.21812124     0.67562289      0.8259309      0.6552653
+9  20     0.750     0.16923915     0.34319399      0.6987073      0.5933756
+10  5     0.850     0.14108147     0.66069847      0.8125164      0.6462162
+11 10     0.850     0.03999600     0.40749720      0.7507317      0.6012919
+12 20     0.850     0.00000000     0.14272853      0.6236281      0.5533273
+13  5     0.950     0.06322024     0.49042539      0.7222004      0.5489999
+14 10     0.950     0.00000000     0.26484333      0.6814606      0.5389816
+15 20     0.950     0.00000000     0.05989789      0.5613985      0.5047948
+16  5     0.990     0.00000000     0.37247092      0.6353431      0.5118308
+17 10     0.990     0.00000000     0.20863688      0.5362318      0.4889116
+18 20     0.990     0.00000000     0.03462369      0.1728650      0.4236435
+> print(reshape(allstds[,c("p","n","mcd.alpha","HRPRED.CON") ], 
++   direction="wide", idvar=c("mcd.alpha","p"),timevar="n")[,c(1:2,6:3)])
+    p mcd.alpha HRPRED.CON.0050 HRPRED.CON.0100 HRPRED.CON.0500 HRPRED.CON.1000
+1   5       MBP       5.0283581       3.8734122       1.3159958       0.8796829
+2  10       MBP       4.8232602       3.6066409       1.2066392       0.8172591
+3  20       MBP       3.4137268       2.6133768       1.0804099       0.7592963
+4   5     0.650       3.0866209       2.2240360       1.0348975       0.7408114
+5  10     0.650       3.7367762       2.2735454       0.9631435       0.7119469
+6  20     0.650       4.1488679       2.0280813       0.8706378       0.6576072
+7   5     0.750       1.6607300       1.5944668       0.9345959       0.6898159
+8  10     0.750       2.0708167       1.5077985       0.8836394       0.6708109
+9  20     0.750       2.9109510       1.1782187       0.7650839       0.6057991
+10  5     0.850       1.0968772       1.2123522       0.8497243       0.6577988
+11 10     0.850       1.0496701       1.0549002       0.8025381       0.6156162
+12 20     0.850       1.4779797       0.6819597       0.6793790       0.5611653
+13  5     0.950       0.6809353       0.9650278       0.7373854       0.5438590
+14 10     0.950       0.4926815       0.7694216       0.7176678       0.5428831
+15 20     0.950       0.5508852       0.3971996       0.6076559       0.5151712
+16  5     0.990       0.5150352       0.5348520       0.6647319       0.5170662
+17 10     0.990       0.3696142       0.4809129       0.5854755       0.5000582
+18 20     0.990       0.3686069       0.2904615       0.2297427       0.4297427
+> 
+> 
+> 
+> proc.time()
+    user   system  elapsed 
+   5.004    0.804 9927.514 

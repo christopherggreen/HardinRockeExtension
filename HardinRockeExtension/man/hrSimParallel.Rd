@@ -57,9 +57,10 @@ hrSimParallel(cl, p, n, N, B = 10000, alpha = 0.05, mcd.alpha = max.bdp.mcd.alph
   the second entry (suffix ``CON'') uses (raw) MDs without the small
   sample correction; and the third entry (suffix ``SM'') uses the (raw)
   MDs with both correction factors. (It was not clear to the package
-  author whether Hardin and Rocke (2005) used these correction factors,
-  so all variants were calculated and examined. It seems the ``CON''
-  approach is the best match for their results. CHECK THIS ASSERTION)
+  author whether Hardin and Rocke (2005) used these correction factors in 
+  their calculations; so all variants were calculated and examined. 
+  Empirically, it seems the ``CON'' approach is the best match for their 
+  results.)
 
   Look at the column means of the resulting matrix to see the average 
   fraction of outliers detected (which is an estimate of the Type 1 error rate

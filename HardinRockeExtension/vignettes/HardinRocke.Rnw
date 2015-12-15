@@ -24,8 +24,8 @@
   linkcolor={Blue},%
   citecolor={Blue},%
   urlcolor={Red},%
-  pdfstartview={Fit},%
-  pdfview={XYZ null null null}%
+  pdfstartview={XYZ null null 1},%
+  pdfview={XYZ null null null},%
 }
 
 \usepackage{natbib}
@@ -57,13 +57,27 @@
 \section{Introduction}
 This vignette shows how to use the function
 \texttt{hrSimParallel} to replicate Table 1 of
-\citet{HardinRocke:2005}, shown on page 942.
+\cite{HardinRocke:2005}, shown on page 942. 
 We assume the reader can set up a cluster
-using the \texttt{parallel} package. 
+using the \texttt{parallel} package, but this
+is not necessary: one can create a cluster with
+a single node.
+
+Note that all code blocks in the vignette are marked
+as ``do not evaluate'' to avoid running long simulations
+during package checks. In the \texttt{R} code file 
+resulting from running \texttt{Stangle} on the vignette
+source, you will need to uncomment all the \texttt{R}
+code to actually run the simulation.
 
 \section{Setup}
-The simulation requires the \texttt{CerioliOutlierDetection}
-package as well as the \texttt{parallel} package.
+First, we load some required packages and take care of some performance
+tuning. The simulation requires the \texttt{CerioliOutlierDetection}
+package as well as the \texttt{parallel} package. We also load the
+\texttt{RhpcBLASctl} package to force the use of single-threaded BLAS,
+if possible: with a multi-threaded BLAS on a multi-core machine, the
+cluster ``nodes'' may impede each other. We want each worker to have
+the node to itself for maximum efficiency.
 <<setup, eval=FALSE>>=
 # Replicate Table 1 in Hardin and Rocke (2005),
 # page 942
@@ -73,9 +87,13 @@ package as well as the \texttt{parallel} package.
 #
 # run simulations in parallel
 
+require( RhpcBLASctl             )
+require( parallel                )
 require( CerioliOutlierDetection )
-require( HardinRockeExtension )
-require( parallel )
+require( HardinRockeExtension    )
+
+# force single-threaded BLAS if possible
+omp_set_num_threads(1)
 @
 
 Create a cluster using one of the \texttt{makeXXcluster}
@@ -84,8 +102,20 @@ functions from the \texttt{parallel} package. On Windows,
 We assume 10 nodes here. \texttt{hrSimParallel} will 
 distribute the work within a simulation run across 
 the cluster.
+
+The \texttt{useXDR} option should be set to FALSE
+on little endian machines for efficiency.
 <<makecluster, eval=FALSE>>=
-thecluster <- makePSOCKcluster(10)
+thecluster <- makePSOCKcluster(10, 
+	outfile="hr05_replicate.log", useXDR=FALSE)
+@
+
+We initialize the cluster random number generator
+with a seed; this makes it possible for you to 
+replicate our numbers and the resulting figures.
+<<reproduce, eval=FALSE>>=
+# make reproducible
+clusterSetRNGStream(cl = thecluster, 2015)
 @
 
 Hardin and Rocke used 5000 simulation runs. We set 
@@ -107,7 +137,8 @@ on the node.
 # initialize each node
 tmp.rv <- clusterEvalQ( cl = thecluster, {
   require( CerioliOutlierDetection )
-  require( HardinRockeExtension )
+  require( HardinRockeExtension    )
+  require( mvtnorm                 )
 
   my.pid <- Sys.getpid()
   cat("My pid is ", my.pid, "\n")
@@ -124,7 +155,8 @@ fraction $\alpha$. Hardin and Rocke used $p \in \{5, 10, 20\}$
 and $n \in \{50,100,500,1000\}$, and assumed $\alpha$ was
 equal to the maximum breakdown point fraction 
 $\frac{\lfloor (n+p+1)/2 \rfloor}{n}$. We run some additional
-MCD fractions here for testing purposes.
+MCD fractions here to illustrate how well the Hardin-Rocke
+method works outside of its design parameters.
 
 We chose to order the cases by decreasing sample size so that
 the most ``expensive'' cases would run first on our cluster; this
@@ -147,6 +179,7 @@ dimnames(hr.cases)[[2]] <- c("p","n","mcd.alpha","mbp")
 hr.cases <- data.frame(t(hr.cases))
 @
 
+\section{Simulation Runs}
 Now we run the simulation. We distribute the work of each
 case across the cluster. Empirical testing showed that this
 was faster on our machines than running entire cases in 
@@ -157,7 +190,7 @@ Remember to stop your cluster when you're done.
 cat("Starting run at ", format(Sys.time()), "\n")
 
 hrResults <- lapply(hr.cases, function(pn,clst,ns,bs) {
-    cat("Trial p = ",pn[1]," n = ",pn[2],"\n")
+    cat("Trial p = ",pn[1]," n = ",pn[2]," mcd.alpha = ",pn[3],"\n")
     hrSimParallel(cl=clst, p = pn[1] , n = pn[2], 
       mcd.alpha=pn[3], alpha=0.05, N=ns, B=bs, lgf=logfile)
   }, clst=thecluster, ns=N.SIM, bs=B.SIM
@@ -165,8 +198,12 @@ hrResults <- lapply(hr.cases, function(pn,clst,ns,bs) {
 
 cat("Run completed at ", format(Sys.time()), "\n")
 stopCluster(thecluster)
+# it is a good idea to save hrResults to a file
+# here!!!
+# save(hrResults, file="hrResults.rda")
 @
 
+\section{Analysis of Simulation Results}
 Now we calculate and store the mean and standard deviation
 of the results for each case.
 <<calcstats, eval=FALSE>>=
@@ -174,32 +211,76 @@ allmeans <- as.data.frame(t(rbind( hr.cases,
   100*sapply( hrResults, function(x) colMeans(x) )
 )))
 row.names(allmeans) <- NULL
+# format n and mcd.alpha so that reshape looks nicer
+allmeans$n <- factor(sprintf("%04d", allmeans$n), ordered=TRUE)
+allmeans$mcd.alpha <- sprintf("%0.3f", allmeans$mcd.alpha)
+# collapse all the maximum breakdown point cases to one
+# since the MBP alpha value differs for different n and p
+allmeans$mcd.alpha[ allmeans$mbp==1 ] <- "MBP"
+allmeans$mcd.alpha <- factor(allmeans$mcd.alpha)
 
 allstds <- as.data.frame(t(rbind( hr.cases, 
   100*sapply( hrResults, function(x) apply(x,2,sd) )
 )))
 row.names(allstds) <- NULL
+# format n and mcd.alpha so that reshape looks nicer
+allstds$n <- factor(sprintf("%04d", allstds$n), ordered=TRUE)
+allstds$mcd.alpha <- sprintf("%0.3f", allstds$mcd.alpha)
+# collapse all the maximum breakdown point cases to one
+# since the MBP alpha value differs for different n and p
+allstds$mcd.alpha[ allstds$mbp==1 ] <- "MBP"
+allstds$mcd.alpha <- factor(allstds$mcd.alpha)
 @
 
 Finally, we reshape the results for easier comparison
-to Table 1 of \cite{HardinRocke:2005}.
-<<tabularize, eval=FALSE>>=
+to Table 1 of \cite{HardinRocke:2005}. First, here are
+the maximum breakdown point cases; compare to the 
+Hardin and Rocke paper's results.
+<<tabularize1, eval=FALSE>>=
 # format for easier comparision to hardin and rocke paper
-reshape(allmeans[,c("p","n","mcd.alpha","CHI2.CON")  ],
-  direction="wide", idvar=c("mcd.alpha","p"),timevar="n")
-reshape(allmeans[,c("p","n","mcd.alpha","HRASY.CON") ], 
-  direction="wide", idvar=c("mcd.alpha","p"),timevar="n")
-reshape(allmeans[,c("p","n","mcd.alpha","HRPRED.CON")], 
-  direction="wide", idvar=c("mcd.alpha","p"),timevar="n")
+# reorder columns so that n increases as we move left to
+# right
+cat("Means:\n")
+print(reshape(allmeans.mbp[,c("p","n","CHI2.CON")  ],
+  direction="wide", idvar=c("p"),timevar="n")[,c(1,5:2)])
+print(reshape(allmeans.mbp[,c("p","n","HRASY.CON") ], 
+  direction="wide", idvar=c("p"),timevar="n")[,c(1,5:2)])
+print(reshape(allmeans.mbp[,c("p","n","HRPRED.CON")], 
+  direction="wide", idvar=c("p"),timevar="n")[,c(1,5:2)])
 
-reshape(allstds[,c("p","n","mcd.alpha","CHI2.CON")   ],
-  direction="wide", idvar=c("mcd.alpha","p"),timevar="n")
-reshape(allstds[,c("p","n","mcd.alpha","HRASY.CON")  ],
-  direction="wide", idvar=c("mcd.alpha","p"),timevar="n")
-reshape(allstds[,c("p","n","mcd.alpha","HRPRED.CON") ], 
-  direction="wide", idvar=c("mcd.alpha","p"),timevar="n")
+cat("Standard deviations:\n")
+print(reshape(allstds.mbp[,c("p","n","CHI2.CON")   ],
+  direction="wide", idvar=c("p"),timevar="n")[,c(1,5:2)])
+print(reshape(allstds.mbp[,c("p","n","HRASY.CON")  ],
+  direction="wide", idvar=c("p"),timevar="n")[,c(1,5:2)])
+print(reshape(allstds.mbp[,c("p","n","HRPRED.CON") ], 
+  direction="wide", idvar=c("p"),timevar="n")[,c(1,5:2)])
 @
 
-\bibliographystyle{chicago}
-\bibliography{hardinrockeextension}
+Next, we can expand these tables to look at the behavior
+of the tests we use other values for the MCD fraction.
+<<tabularize2, eval=FALSE>>=
+# format for easier comparision to hardin and rocke paper
+cat("Means:\n")
+print(reshape(allmeans[,c("p","n","mcd.alpha","CHI2.CON")  ],
+  direction="wide", idvar=c("mcd.alpha","p"),timevar="n")[,c(1:2,6:3)])
+print(reshape(allmeans[,c("p","n","mcd.alpha","HRASY.CON") ], 
+  direction="wide", idvar=c("mcd.alpha","p"),timevar="n")[,c(1:2,6:3)])
+print(reshape(allmeans[,c("p","n","mcd.alpha","HRPRED.CON")], 
+  direction="wide", idvar=c("mcd.alpha","p"),timevar="n")[,c(1:2,6:3)])
+
+cat("Standard deviations:\n")
+print(reshape(allstds[,c("p","n","mcd.alpha","CHI2.CON")   ],
+  direction="wide", idvar=c("mcd.alpha","p"),timevar="n")[,c(1:2,6:3)])
+print(reshape(allstds[,c("p","n","mcd.alpha","HRASY.CON")  ],
+  direction="wide", idvar=c("mcd.alpha","p"),timevar="n")[,c(1:2,6:3)])
+print(reshape(allstds[,c("p","n","mcd.alpha","HRPRED.CON") ], 
+  direction="wide", idvar=c("mcd.alpha","p"),timevar="n")[,c(1:2,6:3)])
+@
+
+Tables 2 and 3 of \cite{HardinRocke:2005} use an identical set 
+up but a different significance level. Those tables can be reproduced
+by setting \texttt{alpha} to a different value.
+\bibliographystyle{plainnat}
+\bibliography{HardinRockeExtension}
 \end{document}

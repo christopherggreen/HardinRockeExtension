@@ -1,0 +1,291 @@
+Initialized
+
+My pid is  528 on node  stu2 
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
+Running block 2 
+	 Iteration: 50  100  150  200  250  300  350  400  450  500  
+Done with block 2 
+
