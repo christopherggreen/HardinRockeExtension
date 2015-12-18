@@ -1,8 +1,9 @@
 all: pdf clean
 
-pdf: HardinRocke.pdf
+pdf: HardinRocke.pdf GreenMartinSimulation.pdf
 
 %.pdf:	%.tex
+	rm -f $@
 	pdflatex $* 
 	bibtex $* 
 	pdflatex $* 
