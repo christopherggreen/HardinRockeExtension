@@ -11,4 +11,4 @@ pdf: HardinRocke.pdf GreenMartinSimulation.pdf
 	rm $<
 
 clean:
-	rm -f *.aux *.bbl *.blg *.log *.toc *.out 
+	#rm -f *.aux *.bbl *.blg *.log *.toc *.out 
