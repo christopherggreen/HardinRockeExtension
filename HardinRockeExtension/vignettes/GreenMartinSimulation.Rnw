@@ -249,7 +249,7 @@ results and fit the model presented in \cite{GreenMartin:2014}.
 \subsection{Loading the Data}
 We load the data from the simulation runs, add a few
 calculations, and sort the data for later use.
-<<dataload, eval=FALSE>>=
+<<data-step-01, eval=FALSE>>=
 # load the saved data from the simulation
 # load("hr.cm.results.all.final.rda")
 
@@ -297,11 +297,15 @@ head(hr.cm.results.all)
 hr.cm.results.all[duplicated(hr.cm.results.all[,c("n","p","mcd.alpha")]),]
 @
 \subsection{EDA}
-Next we 
-<<dataeda, eval=FALSE>>=
+Next we perform some exploratory data analysis via
+lattice plots.
+<<data-step-02a, eval=FALSE>>=
 require(lattice)
-require(cggRutils) # needed for splus.theme
+@
 
+Plot the (logarithm of ) simulated Wishart degrees of freedom $m$ against 
+sample size $n$ for each dimension $p$ and MCD fraction. 
+<<data-step-02b, eval=FALSE>>=
 xxx <- xyplot( log(m) ~ n | p, 
         groups = mcd.alpha.bin, 
         data=hr.cm.results.all,
@@ -309,13 +313,17 @@ xxx <- xyplot( log(m) ~ n | p,
         strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
     main="Simulated Degrees of Freedom against Sample Size\nBy Alpha and Dimension"
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
+@
 
+Plot the consistency correction $c$ against sample size $n$ for each dimension $p$
+and MCD fraction. 
+<<data-step-02c, eval=FALSE>>=
 xxx <- xyplot( c ~ n | p, 
         groups = mcd.alpha.bin, 
         data=subset(hr.cm.results.all, n >= 500 & mcd.alpha >= 0.9),
@@ -327,14 +335,17 @@ xxx <- xyplot( c ~ n | p,
           panel.xyplot(x,x/(x-1),type="l",lty="dotted",col="black")
     }
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
+@
 
-
+Plot the logarithm of $m$ against logarithm of sample size $n$ for each dimension $p$
+and MCD fraction. 
+<<data-step-02c, eval=FALSE>>=
 xxx <- xyplot( log(m) ~ log(n) | p, 
         groups = mcd.alpha.bin, 
         data=hr.cm.results.all,
@@ -342,14 +353,17 @@ xxx <- xyplot( log(m) ~ log(n) | p,
         strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
     main="Simulated Degrees of Freedom against Log Sample Size\nBy Alpha and Dimension"
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
+@
 
-
+Plot the asymptotic degrees of freedom against sample size by dimension and 
+MCD fraction.
+<<data-step-02d, eval=FALSE>>=
 xxx <- xyplot( log(m.asy) ~ n | p, 
         groups = mcd.alpha.bin, 
         data=hr.cm.results.all,
@@ -357,13 +371,17 @@ xxx <- xyplot( log(m.asy) ~ n | p,
         strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
     main="Asymptotic Degrees of Freedom against Sample Size\nBy Alpha and Dimension"
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
+@
 
+Plot the asymptotic degrees of freedom against the logarithm of sample size 
+by dimension and MCD fraction.
+<<data-step-02e, eval=FALSE>>=
 xxx <- xyplot( log(m.asy) ~ log(n) | p, 
         groups = mcd.alpha.bin, 
         data=hr.cm.results.all,
@@ -371,14 +389,17 @@ xxx <- xyplot( log(m.asy) ~ log(n) | p,
         strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
     main="Asymptotic Degrees of Freedom against Log Sample Size\nBy Alpha and Dimension"
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
+@
 
-
+Plot the ratio of the simulated $m$ to the asymptotic $m$ against sample size
+by dimension and MCD fraction.
+<<data-step-02f, eval=FALSE>>=
 xxx <- xyplot( exp(log.sim.asy) ~ n | p, 
         groups = mcd.alpha.bin, 
         data=hr.cm.results.all,
@@ -387,14 +408,17 @@ xxx <- xyplot( exp(log.sim.asy) ~ n | p,
     main="Ratio of Sim. DF to Asy. DF against Sample Size\nBy Alpha and Dimension",
     scales=list(y=list(relation="free"))
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
+@
 
-
+Plot the logarithm of the ratio of the simulated $m$ to the asymptotic $m$ against the
+logrithm of sample size by dimension and MCD fraction.
+<<data-step-02g, eval=FALSE>>=
 xxx <- xyplot( log.sim.asy ~ log(n) | p, 
         groups = mcd.alpha.bin, 
         data=hr.cm.results.all,
@@ -403,13 +427,17 @@ xxx <- xyplot( log.sim.asy ~ log(n) | p,
     main="Log Ratio of Sim. DF to Asy. DF against Log Sample Size\nBy Alpha and Dimension",
     scales=list(y=list(relation="free"))
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
+@
 
+Plot the logarithm of the ratio of the simulated $m$ to the asymptotic $m$ against the
+sample size by dimension and MCD fraction.
+<<data-step-02h, eval=FALSE>>=
 xxx <- xyplot( log.sim.asy ~ n | p, 
         groups = mcd.alpha.bin, 
         data=hr.cm.results.all,
@@ -418,13 +446,17 @@ xxx <- xyplot( log.sim.asy ~ n | p,
     main="Log Ratio of Sim. DF to Asy. DF against Sample Size\nBy Alpha and Dimension",
     scales=list(y=list(relation="free"))
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
+@
 
+Plot the logarithm of the ratio of the simulated $m$ to the asymptotic $m$ against the
+sample size by MCD fraction and dimension. Save this plot for use in the paper.
+<<data-step-02i, eval=FALSE>>=
 xxx <- xyplot( log.sim.asy ~ n | mcd.alpha.bin, 
   groups = p, 
   data=hr.cm.results.all,
@@ -439,7 +471,7 @@ xxx <- xyplot( log.sim.asy ~ n | mcd.alpha.bin,
   xlab="SAMPLE SIZE",
   ylab="LOG RATIO"
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
@@ -447,14 +479,17 @@ print(xxx)
 dev.off()
 
 
-trellis.device(pdf, theme=splus.theme, file="RatioPlot_LogSimAsy_final.pdf")
+trellis.device(pdf, file="RatioPlot_LogSimAsy_final.pdf")
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
+@
 
-
+Plot the ratio of the simulated $m$ to the asymptotic $m$ against the
+sample size by MCD fraction and dimension. Save this plot for use in the paper.
+<<data-step-02j, eval=FALSE>>=
 xxx <- xyplot( exp(log.sim.asy) ~ n | mcd.alpha.bin, 
   groups = p, 
   data=hr.cm.results.all,
@@ -469,14 +504,14 @@ xxx <- xyplot( exp(log.sim.asy) ~ n | mcd.alpha.bin,
   xlab="SAMPLE SIZE",
   ylab="RATIO"
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
 
-trellis.device(pdf, theme=splus.theme, file="RatioPlot_SimAsy_final.pdf")
+trellis.device(pdf, file="RatioPlot_SimAsy_final.pdf")
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
@@ -485,7 +520,9 @@ dev.off()
 @
 
 \subsection{Fit model}
-<<datasmall, eval=FALSE>>=
+Next we fit the model described in \cite{GreenMartin:2014}
+via \texttt{nls}.
+<<data-step-03a, eval=FALSE>>=
 # fit a model where log of ratio decreases like c/n^d, for a power of n that depends on the alpha
 # and some constant that is a function of alpha, p
 
@@ -503,10 +540,15 @@ hr.cm.results.all <- within(hr.cm.results.all,
     log.sim.pred <- log(m)-log(m.pred)
   }
 )
+@
 
-
-
-
+We perform a bit of EDA to check our results.
+First we plot the logarithm of the ratio of the value of $m$
+predicted by our model versus the asymptotic $m$ against the 
+logarithm of the ratio of the simulated $m$ to the asymptotic
+$m$. The plot is done within each combination of dimension and
+MCD fraction. This plot is saved for the paper.
+<<data-step-03b, eval=FALSE>>=
 xxx <- xyplot( log.pred.asy ~ log.sim.asy | p * mcd.alpha.bin,
         data=hr.cm.results.all,
         auto.key=list(space="right",points=TRUE), 
@@ -520,21 +562,23 @@ xxx <- xyplot( log.pred.asy ~ log.sim.asy | p * mcd.alpha.bin,
     panel.abline(c(0,1), col="gray", lty="dotted")
     }
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
 
-trellis.device(pdf, theme=splus.theme, file="Log_Predicted_m_Vs_Log_Observed_m_final.pdf")
+trellis.device(pdf, file="Log_Predicted_m_Vs_Log_Observed_m_final.pdf")
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
+@
 
-
+Here is a plot of the predicted $m$ versus the simulated $m$.
+<<data-step-03c, eval=FALSE>>=
 xxx <- xyplot( m.pred ~ m | p * mcd.alpha.bin,
         data=hr.cm.results.all,
         auto.key=list(space="right",points=TRUE), 
@@ -548,22 +592,24 @@ xxx <- xyplot( m.pred ~ m | p * mcd.alpha.bin,
     panel.abline(c(0,1), col="gray", lty="dotted")
     }
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
 
-trellis.device(pdf, theme=splus.theme, file="Predicted_m_Vs_Observed_m_final.pdf")
+trellis.device(pdf, file="Predicted_m_Vs_Observed_m_final.pdf")
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
+@
 
-
-
+Plot of the logarithm of the ratio of the simulated $m$ to the 
+predicted $m$ against sample size $n$, by MCD alpha and dimension.
+<<data-step-03d, eval=FALSE>>=
 xxx <- xyplot( log.sim.pred ~ n | mcd.alpha.bin, 
         groups = p, 
         data=hr.cm.results.all,
@@ -576,23 +622,24 @@ xxx <- xyplot( log.sim.pred ~ n | mcd.alpha.bin,
     panel.abline(h=0, lty="dotted", col="gray")
     }
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
 
-
-trellis.device(pdf, theme=splus.theme, file="RatioPlot_LogSimPred_final.pdf")
+trellis.device(pdf, file="RatioPlot_LogSimPred_final.pdf")
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
+@
 
-
-
+Plot of the logarithm of the ratio of the simulated $m$ to the 
+predicted $m$ against the logarithm of sample size $n$.
+<<data-step-03d, eval=FALSE>>=
 xxx <- xyplot( log.sim.pred ~ log(n),
         data=hr.cm.results.all,
         auto.key=list(space="right",points=TRUE), 
@@ -604,21 +651,1070 @@ xxx <- xyplot( log.sim.pred ~ log(n),
     panel.abline(h=0, lty="dotted", col="gray")
     }
 )
-trellis.device(windows, theme=splus.theme)
+trellis.device(windows)
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
 
-
-trellis.device(pdf, theme=splus.theme, file="RatioPlot_LogSimPred_UNSTRATIFIED_final.pdf")
+trellis.device(pdf, file="RatioPlot_LogSimPred_UNSTRATIFIED_final.pdf")
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
 @
+
+\subsection{Comparing our model to the Hardin and Rocke model: maximum breakdown point case}
+We compare our model's estimates for the maximum breakdown point
+case against those from the Hardin and Rocke paper.
+<<data-step-04a, eval=FALSE>>=
+# compare our model to HR for alpha = MBP
+# hr: log (ratio ) = 0.725 - 0.0063p - 0.078 log(n)
+#
+hr.compare <- unique(subset( hr.cm.results.all, mcd.alpha.bin == "MBP", 
+      select=c("n","p","log.sim.asy","log.pred.asy") ))
+hr.compare$log.hr.asy <- apply( hr.compare[,c("n","p")], 1,
+  function(x) 0.725 - 0.0063*x[2] - 0.078*log(x[1]))
+
+# compare our simulated m to those in the hardin-rocke paper
+hr05p941 <- data.frame(n=c(50,100,500,1000),p=c(5,10,10,20),
+  m=c(13.09,32.76,122.32,318.05),m.asy=c(8.76,24.56,106.51,282.87))
+
+hr05p941check <- merge( hr05p941, 
+  subset(hr.cm.results.all, mcd.alpha.bin=="MBP", c("n","p","m","m.asy")),
+  by=c("n","p"),
+  suffixes=c("HR","CG"),
+  all=FALSE
+)
+head(hr05p941check)
+@
+
+We can also try fitting a linear model on data from the same parameter set that 
+Hardin and Rocke used.
+<<data-step-04b, eval=FALSE>>=
+# fit a linear model on the same data HR used
+hr05.model <- lm( log.sim.asy ~ p + log(n), data=subset(hr.cm.results.all, 
+  mcd.alpha.bin=="MBP" & p %in% c(3,5,7,10,15,20) & n %in% c(50,100,250,500,750,1000), 
+    c("n","p","log.sim.asy","mcd.alpha"))
+)
+summary(hr05.model)
+@
+
+We build a data set to compare the simulated method, the Hardin and
+Rocke method, and our method.
+<<data-step-04c, eval=FALSE>>=
+hr.compare <- reshape( hr.compare, direction="long", 
+  varying=list(ratio=c("log.sim.asy","log.pred.asy","log.hr.asy")))
+hr.compare$method <- factor( hr.compare$time, labels=c("SIM","CG","HR") )
+row.names(hr.compare) <- NULL
+hr.compare <- subset( hr.compare, select = c(p, n, log.sim.asy, method) )
+names(hr.compare)[3] <- "Ratio"
+head(hr.compare)
+
+hr.compare$m.asy <- apply( hr.compare[,c("n","p")], 1, 
+  function(x) ch99AsymptoticDF(x[1],x[2])$m.hat.asy )
+hr.compare <- within( hr.compare, {
+  m <- exp( Ratio ) * m.asy
+})
+# add in critical values that would come from the estimated df parameters
+hr.compare$crit01 <- apply( hr.compare[,c("m","p")], 1, 
+  function(x) hr05CriticalValue(x[1],x[2],0.01) )
+@
+
+We plot the value of $m$ versus sample size $n$ for each dimension by
+method. We save this plot.
+<<data-step-04d, eval=FALSE>>=
+######### plots ###############
+xxx <- xyplot( m ~ n | p,
+        groups = method, 
+        data=hr.compare,
+        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","PROPOSAL","HR05")), 
+    main="PREDICTED DEGREES OF FREEDOM",
+    scale=list(x=list(relation="free"),y=list(relation="free")),
+    panel=function(...) {
+    panel.superpose(...)
+    panel.abline(h=0, lty="dotted", col="gray")
+    }, 
+    pty = "m",
+    ylab = "DEGREES OF FREEDOM",
+    xlab = "NUMBER OF OBSERVATIONS"
+)
+trellis.device(windows)
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- 1:10
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="ComparisonOfMethodsForAlpha05_final.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- 1:10
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+@
+
+We plot the ratio of the value of $m$ to the asymptotic value of $m$ 
+versus sample size $n$ for each dimension by method. 
+<<data-step-04e, eval=FALSE>>=
+xxx <- xyplot( Ratio ~ n | p, 
+        groups = method, 
+        data=hr.compare,
+        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","PROPOSAL","HR05")), 
+    main="LOG OF RATIO OF CALCULATED DF TO ASYMPTOTIC DF",
+    scale=list(x=list(relation="free"),y=list(relation="free")),
+    panel=function(...) {
+    panel.superpose(...)
+    panel.abline(h=0, lty="dotted", col="gray")
+    }, 
+    pty = "m",
+    ylab = "LOG RATIO",
+    xlab = "NUMBER OF OBSERVATIONS"
+)
+trellis.device(windows)
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- 1:10
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+@
+
+We plot the ratio of the value of $m$ to the asymptotic value of $m$ 
+versus the logarithm of sample size $n$ for each dimension by method. 
+We save this plot.
+<<data-step-04f, eval=FALSE>>=
+xxx <- xyplot( Ratio ~ log(n) | p, 
+        groups = method, 
+        data=hr.compare,
+        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","PROPOSAL","HR05")), 
+    main="LOG OF RATIO OF CALCULATED DF TO ASYMPTOTIC DF",
+    scale=list(x=list(relation="free"),y=list(relation="free")),
+    panel=function(...) {
+    panel.superpose(...)
+    panel.abline(h=0, lty="dotted", col="gray")
+    }, 
+    pty = "m",
+    ylab = "LOG RATIO",
+    xlab = "LOG OF NUMBER OF OBSERVATIONS"
+)
+trellis.device(windows)
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- 1:10
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="RatioPlot_LogSimHR_final.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- 1:10
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+@
+
+We plot the logarithm of the critical value (at a significance level of $0.01$)  
+versus the sample size $n$ for each dimension by method. 
+We save this plot.
+<<data-step-04g, eval=FALSE>>=
+xxx <- xyplot( log(crit01) ~ n | p,
+        groups = method, 
+        data=subset(hr.compare, method %in% c("SIM","HR")),
+        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","HR05")), 
+    main="CRITICAL VALUES BASED ON SIMULATED AND\n HARDIN-ROCKE DEGREES OF FREEDOM",
+    scale=list(x=list(relation="free"),y=list(relation="free")),
+    panel=function(...) {
+    panel.superpose(...)
+    panel.abline(h=0, lty="dotted", col="gray")
+    }, 
+    pty = "m",
+    ylab = "LOG OF CRITICAL VALUE",
+    xlab = "NUMBER OF OBSERVATIONS",
+    layout = c(2,3)
+)
+trellis.device(windows)
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(1,2,2,4:10)
+tss$col[1:3] <- c("blue","red","red")
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="CritValHRvsSimForAlpha05_final.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(1,2,2,4:10)
+tss$col[1:3] <- c("blue","red","red")
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+@
+
+\subsection{Comparing our model to the Hardin and Rocke model: non-maximum breakdown point case}
+Next we focus on the cases where an MCD fraction other than 
+the maximum breakdown point case is used. We compare our model's 
+estimates for the non-maximum breakdown point case against 
+those that would be implied from the Hardin and Rocke paper.
+<<data-step-05a, eval=FALSE>>=
+hr.not05 <- subset(hr.cm.results.all, mcd.alpha.bin != "MBP", 
+  c(mcd.alpha,p,n,log.sim.asy,log.pred.asy))
+hr.not05$log.hr.asy <- apply( hr.not05[,c("n","p")], 1,
+  function(x) 0.725 - 0.0063*x[2] - 0.078*log(x[1]))
+
+hr.not05 <- reshape( hr.not05, direction="long", 
+  varying=list(ratio=c("log.sim.asy","log.pred.asy","log.hr.asy")))
+head(hr.not05)
+hr.not05$method <- factor( hr.not05$time, labels=c("SIM","NEW","HR") )
+row.names(hr.not05) <- NULL
+hr.not05 <- subset( hr.not05, select = c(mcd.alpha, p, n, log.sim.asy, method) )
+names(hr.not05)[4] <- "Ratio"
+hr.not05$m.asy <- apply( hr.not05[,c("n","p","mcd.alpha")], 1, 
+  function(x) ch99AsymptoticDF(x[1],x[2], x[3])$m.hat.asy )
+hr.not05 <- within( hr.not05, {
+  m <- exp( Ratio ) * m.asy
+})  
+# add in critical values that would come from the estimated df parameters
+hr.not05$crit01   <- apply( hr.not05[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.01) )
+hr.not05$crit05   <- apply( hr.not05[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.05) )
+hr.not05$crit025  <- apply( hr.not05[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.025) )
+hr.not05$crit001  <- apply( hr.not05[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.001) )
+hr.not05$crit0001 <- apply( hr.not05[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.0001) )
+@
+
+\subsection{Figures}
+Next we generate some figures for the paper. 
+First a plot of the predicted degrees of freedom versus sample size
+by dimension, MCD fraction, and method.
+<<data-step-05b, eval=FALSE>>=
+xxx <- xyplot( m ~ n | p * mcd.alpha,
+        groups = method, 
+        data=hr.not05,
+        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","PROPOSAL","HR05")), 
+    main="PREDICTED DEGREES OF FREEDOM",
+    scale=list(x=list(relation="free"),y=list(relation="free")),
+    panel=function(...) {
+    panel.superpose(...)
+    panel.abline(h=0, lty="dotted", col="gray")
+    }, 
+    pty = "m",
+    ylab = "DEGREES OF FREEDOM",
+    xlab = "NUMBER OF OBSERVATIONS",
+    layout = c(2,3)
+)
+trellis.device(windows)
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- 1:10
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="ComparisonOfMethodsForAlphaNot05_final.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- 1:10
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+@
+
+Here is the same plot but just for the simulated values of $m$ and the
+Hardin-Rocke case.
+<<data-step-05c, eval=FALSE>>=
+xxx <- xyplot( m ~ n | p * mcd.alpha,
+        groups = method, 
+        data=subset(hr.not05, method %in% c("SIM","HR")),
+        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","HR05")), 
+    main="PREDICTED DEGREES OF FREEDOM",
+    scale=list(x=list(relation="free"),y=list(relation="free")),
+    panel=function(...) {
+    panel.superpose(...)
+    panel.abline(h=0, lty="dotted", col="gray")
+    }, 
+    pty = "m",
+    ylab = "DEGREES OF FREEDOM",
+    xlab = "NUMBER OF OBSERVATIONS",
+    layout = c(2,3)
+)
+trellis.device(windows)
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(1,2,2,4:10)
+tss$col[1:3] <- c("blue","red","red")
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="HRvsSimForAlphaNot05_final.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(1,2,2,4:10)
+tss$col[1:3] <- c("blue","red","red")
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+@
+
+Now we look how much the Hardin-Rocke method over- (under-) predicts the value of $m$.
+First we look at the behavior when 75\% of the data is used in the MCD calculations.
+<<data-step-05d, eval=FALSE>>=
+# look at ratio of HR05 to simulated
+hr.not05.a75 <- reshape( subset(hr.not05, (method %in% c("SIM","HR")) & mcd.alpha == 0.75 ), 
+  direction="wide", timevar="method", idvar=c("mcd.alpha","p","n") )
+hr.not05.a75 <- within( hr.not05.a75, {
+  hr.sim.mratio <- m.HR/m.SIM
+      hr.sim.crit01ratio <- crit01.HR/crit01.SIM
+})
+@
+
+<<data-step-05e, eval=FALSE>>=
+xxx <- xyplot( hr.sim.mratio ~ n | p,
+  data=hr.not05.a75,
+  strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+  main="DEGREE OF OVERPREDICTION of m\nBY HARDIN-ROCKE METHOD",
+  ylim=c(0.97*min(c(1,hr.not05.a75$hr.sim.mratio)),1.03*max(hr.not05.a75$hr.sim.mratio)),
+  panel=function(...) {
+    panel.xyplot(...)
+    panel.abline(h=1, lty="dashed", col="black")
+  }, 
+  pty = "m",
+  ylab = "HARDIN-ROCKE m/SIMULATION m",
+  xlab = "NUMBER OF OBSERVATIONS",
+  layout = c(2,3),
+  pch = 19,
+  col = "blue"
+)
+trellis.device(windows)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="HRvsSimRatioForAlphaNot05_final_a75.pdf")
+print(xxx)
+dev.off()
+@
+
+<<data-step-05f, eval=FALSE>>=
+xxx <- xyplot( hr.sim.crit01ratio ~ n | p,
+  data=hr.not05.a75,
+  strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+  main="DEGREE OF UNDERPREDICTION of 0.01 CRITICAL VALUE\nBY HARDIN-ROCKE METHOD",
+  ylim=c(0.97*min(hr.not05.a75$hr.sim.crit01ratio),1.03*max(c(1,hr.not05.a75$hr.sim.crit01ratio))),
+  panel=function(...) {
+    panel.xyplot(...)
+    panel.abline(h=1, lty="dashed", col="black")
+  }, 
+  pty = "m",
+  ylab = "HARDIN-ROCKE CRIT./SIMULATION CRIT.",
+  xlab = "NUMBER OF OBSERVATIONS",
+  layout = c(2,3),
+  pch = 19,
+  col = "blue"
+)
+trellis.device(windows)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="HRvsSimCritRatioForAlphaNot05_final_a75.pdf")
+print(xxx)
+dev.off()
+@
+
+
+Next we look at the behavior when 95\% of the data is used in the MCD calculations.
+<<data-step-05g, eval=FALSE>>=
+hr.not05.a95 <- reshape( subset(hr.not05, (method %in% c("SIM","HR")) & mcd.alpha == 0.95 ), 
+  direction="wide", timevar="method", idvar=c("mcd.alpha","p","n") )
+hr.not05.a95 <- within( hr.not05.a75, {
+  hr.sim.mratio <- m.HR/m.SIM
+      hr.sim.crit01ratio <- crit01.HR/crit01.SIM
+})
+@
+
+<<data-step-05h, eval=FALSE>>=
+xxx <- xyplot( hr.sim.mratio ~ n | p,
+  data=hr.not05.a95,
+  strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+  main="DEGREE OF OVERPREDICTION of m\nBY HARDIN-ROCKE METHOD",
+  ylim=c(0.97*min(c(1,hr.not05.a95$hr.sim.mratio)),1.03*max(hr.not05.a95$hr.sim.mratio)),
+  panel=function(...) {
+    panel.xyplot(...)
+    panel.abline(h=1, lty="dashed", col="black")
+  }, 
+  pty = "m",
+  ylab = "HARDIN-ROCKE m/SIMULATION m",
+  xlab = "NUMBER OF OBSERVATIONS",
+  layout = c(2,3),
+  pch = 19,
+  col = "blue"
+)
+trellis.device(windows)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="HRvsSimRatioForAlphaNot05_final_a95.pdf")
+print(xxx)
+dev.off()
+@
+
+<<data-step-05i, eval=FALSE>>=
+xxx <- xyplot( hr.sim.crit01ratio ~ n | p,
+  data=hr.not05.a95,
+  strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+  main="DEGREE OF UNDERPREDICTION of 0.01 CRITICAL VALUE\nBY HARDIN-ROCKE METHOD",
+  ylim=c(0.97*min(hr.not05.a95$hr.sim.crit01ratio),1.03*max(c(1,hr.not05.a95$hr.sim.crit01ratio))),
+  panel=function(...) {
+    panel.xyplot(...)
+    panel.abline(h=1, lty="dashed", col="black")
+  }, 
+  pty = "m",
+  ylab = "HARDIN-ROCKE CRIT./SIMULATION CRIT.",
+  xlab = "NUMBER OF OBSERVATIONS",
+  layout = c(2,3),
+  pch = 19,
+  col = "blue"
+)
+trellis.device(windows)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="HRvsSimCritRatioForAlphaNot05_final_a95.pdf")
+print(xxx)
+dev.off()
+@
+
+We looked at the ratio for the maximum breakdown point case as well.
+<<data-step-05j, eval=FALSE>>=
+# check ratio for MBP case
+hr.mbp <- subset(hr.cm.results.all, mcd.alpha.bin == "MBP", 
+  c(mcd.alpha,p,n,log.sim.asy,log.pred.asy))
+hr.mbp$log.hr.asy <- apply( hr.mbp[,c("n","p")], 1,
+  function(x) 0.725 - 0.0063*x[2] - 0.078*log(x[1]))
+
+hr.mbp <- reshape( hr.mbp, direction="long", 
+  varying=list(ratio=c("log.sim.asy","log.pred.asy","log.hr.asy")))
+head(hr.mbp)
+hr.mbp$method <- factor(hr.mbp$time, labels=c("SIM","NEW","HR") )
+row.names(hr.mbp) <- NULL
+hr.mbp <- subset( hr.mbp, select = c(mcd.alpha, p, n, log.sim.asy, method) )
+names(hr.mbp)[4] <- "Ratio"
+hr.mbp$m.asy <- apply( hr.mbp[,c("n","p","mcd.alpha")], 1, 
+  function(x) ch99AsymptoticDF(x[1],x[2], x[3])$m.hat.asy )
+hr.mbp <- within( hr.mbp, {
+  m <- exp( Ratio ) * m.asy
+})  
+# add in critical values that would come from the estimated df parameters
+hr.mbp$crit01   <- apply( hr.mbp[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.01) )
+hr.mbp$crit05   <- apply( hr.mbp[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.05) )
+hr.mbp$crit025  <- apply( hr.mbp[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.025) )
+hr.mbp$crit001  <- apply( hr.mbp[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.001) )
+hr.mbp$crit0001 <- apply( hr.mbp[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.0001) )
+
+
+# look at ratio of HR05 to simulated
+hr.mbp.a50 <- reshape( subset(hr.mbp, (method %in% c("SIM","HR")) ), 
+  direction="wide", timevar="method", idvar=c("mcd.alpha","p","n") )
+hr.mbp.a50 <- within( hr.mbp.a50, {
+  hr.sim.mratio <- m.HR/m.SIM
+      hr.sim.crit01ratio <- crit01.HR/crit01.SIM
+})
+@
+
+<<data-step-05k, eval=FALSE>>=
+xxx <- xyplot( hr.sim.mratio ~ n | p,
+  data=hr.mbp.a50,
+  strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+  main="DEGREE OF OVERPREDICTION of m\nBY HARDIN-ROCKE METHOD",
+  ylim=c(0.97*min(c(1,hr.mbp.a50$hr.sim.mratio)),1.03*max(hr.mbp.a50$hr.sim.mratio)),
+  panel=function(...) {
+    panel.xyplot(...)
+    panel.abline(h=1, lty="dashed", col="black")
+  }, 
+  pty = "m",
+  ylab = "HARDIN-ROCKE m/SIMULATION m",
+  xlab = "NUMBER OF OBSERVATIONS",
+  layout = c(2,3),
+  pch = 19,
+  col = "blue"
+)
+trellis.device(windows)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="HRvsSimRatioForMBPCase_final.pdf")
+print(xxx)
+dev.off()
+@
+
+<<data-step-05l, eval=FALSE>>=
+xxx <- xyplot( hr.sim.crit01ratio ~ n | p,
+  data=hr.mbp.a50,
+  strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+  main="DEGREE OF UNDERPREDICTION of 0.01 CRITICAL VALUE\nBY HARDIN-ROCKE METHOD",
+  ylim=c(-1.0*min(hr.mbp.a50$hr.sim.crit01ratio),1.03*max(c(1,hr.mbp.a50$hr.sim.crit01ratio))),
+  panel=function(...) {
+    panel.xyplot(...)
+    panel.abline(h=1, lty="dashed", col="black")
+  }, 
+  pty = "m",
+  ylab = "HARDIN-ROCKE CRIT./SIMULATION CRIT.",
+  xlab = "NUMBER OF OBSERVATIONS",
+  layout = c(2,3),
+  pch = 19,
+  col = "blue"
+)
+trellis.device(windows)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="HRvsSimCritRatioForMBPCase_final.pdf")
+print(xxx)
+dev.off()
+@
+
+<<data-step-05m, eval=FALSE>>=
+xxx <- xyplot( Ratio ~ n | p * mcd.alpha,
+        groups = method, 
+        data=subset(hr.not05, method %in% c("SIM","HR")),
+        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","HR05")), 
+    main="LOG RATIO OF PREDICTED DEGREES OF FREEDOM TO ASYMPTOTIC DEGREES OF FREEDOM",
+    scale=list(x=list(relation="free"),y=list(relation="free")),
+    panel=function(...) {
+    panel.superpose(...)
+    panel.abline(h=0, lty="dotted", col="gray")
+    }, 
+    pty = "m",
+    ylab = "LOG RATIO",
+    xlab = "NUMBER OF OBSERVATIONS",
+    layout = c(2,3)
+)
+trellis.device(windows)
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(1,2,2,4:10)
+tss$col[1:3] <- c("blue","red","red")
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="LogRatioHRvsSimForAlphaNot05_final.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(1,2,2,4:10)
+tss$col[1:3] <- c("blue","red","red")
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+@
+
+<<data-step-05n, eval=FALSE>>=
+xxx <- xyplot( crit01 ~ n | p * mcd.alpha,
+        groups = method, 
+        data=subset(hr.not05, method %in% c("SIM","HR")),
+        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","HR05")), 
+    main="CRITICAL VALUES BASED ON SIMULATED AND\n HARDIN-ROCKE DEGREES OF FREEDOM",
+    scale=list(x=list(relation="free"),y=list(relation="free")),
+    panel=function(...) {
+    panel.superpose(...)
+    panel.abline(h=0, lty="dotted", col="gray")
+    }, 
+    pty = "m",
+    ylab = "CRITICAL VALUE",
+    xlab = "NUMBER OF OBSERVATIONS",
+    layout = c(2,3)
+)
+trellis.device(windows)
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(1,2,2,4:10)
+tss$col[1:3] <- c("blue","red","red")
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="CritValHRvsSimForAlphaNot05_final.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(1,2,2,4:10)
+tss$col[1:3] <- c("blue","red","red")
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+@
+
+<<data-step-05o, eval=FALSE>>=
+xxx <- xyplot( crit01 ~ n | p * mcd.alpha,
+        groups = method, 
+        data=hr.not05,
+        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","NEW","HR05")), 
+    main="CRITICAL VALUES BASED ON SIMULATED AND\n HARDIN-ROCKE DEGREES OF FREEDOM",
+    scale=list(x=list(relation="free"),y=list(relation="free")),
+    panel=function(...) {
+    panel.superpose(...)
+    panel.abline(h=0, lty="dotted", col="gray")
+    }, 
+    pty = "m",
+    ylab = "CRITICAL VALUE",
+    xlab = "NUMBER OF OBSERVATIONS",
+    layout = c(2,3)
+)
+trellis.device(windows)
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- 1:10
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="CritValCompareForAlphaNot05_final.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- 1:10
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+@
+
+\section{Out of Sample Verification}
+We tested our model by re-running the simulation code with 
+a different set of parameters, and then testing how well our
+model predicted the out of sample simulation results.
+\subsection{Running the verification code}
+<<validate,eval=FALSE>>=
+require(parallel)
+
+thecluster <- makePSOCKcluster(10, 
+	outfile="hrsim_validate.log", useXDR=FALSE)
+
+# make this reproducible
+clusterSetRNGStream(cl = thecluster, 2015)
+
+# initialize each node
+tmp.rv <- clusterEvalQ( cl = thecluster, {
+  require( CerioliOutlierDetection )
+  require( HardinRockeExtension )
+  N.SIM <- 5000
+  B.SIM <- 500
+ 
+  my.pid <- Sys.getpid()
+  cat("My pid is ", my.pid, "\n")
+  logfile <- paste("Verification_AllAlphas_Parallel_logfile_",my.pid,".txt",sep="")
+  cat("Initialized\n\n", file=logfile)
+
+  invisible(NULL)
+})
+
+# build the pairs of sample size n and dimension p
+hr.cm.params <- expand.grid(
+      list(
+      p=c(2,3,5,8,11,16,22),
+      n=c(50,150,300,500,750,1000)
+    )
+    )
+# adding more coverage for small sample sizes
+hr.cm.params <- rbind( hr.cm.params, within( 
+  expand.grid(list(p=c(2,3,5,8,11,16,22), ratio=c( 4,6,8,10,12 ) )), 
+  {
+    n <- p * ratio
+    rm(ratio)
+  }
+))
+# remove any duplicates
+hr.cm.params <- unique(hr.cm.params)
+# want to run most expensive cases first
+hr.cm.params <- hr.cm.params[ order( hr.cm.params$n, hr.cm.params$p, decreasing=TRUE ), ]
+
+# add maximum breakdown point case to the params data set
+hr.cm.params[,"mbp"] <- apply( hr.cm.params, 1, function(x) floor( (x[2] + x[1] + 1)/2 )/x[2] )
+
+# want each case to be a column so that we can use parLapply
+hr.cm.params <- data.frame(t(as.matrix(hr.cm.params)))
+      
+mcd.alphas <- c(0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95,0.99,0.995,1.00) 
+clusterExport(cl = thecluster, "hr.cm.params")
+clusterExport(cl = thecluster, "mcd.alphas")
+
+#
+# using parLapply here to prevent simplification of the
+# results (as parApply would attempt to do)
+#
+cat("Starting run at ", format(Sys.time()), "\n")
+
+hr.cm.verify.all.pre <- parLapply(cl = thecluster, 
+  X = hr.cm.params, function(pn) {
+    cat("Starting case p = ",pn[1]," n = ",pn[2]," at time ", 
+      format(Sys.time()), " \n",file=logfile,append=TRUE)
+    results <- hr.cm(p = pn[1] , n = pn[2], N=N.SIM, B=B.SIM, 
+      mcd.alpha=unique(c(pn[3],mcd.alphas)), logfile=logfile)
+    cat("Finished case p = ",pn[1]," n = ",pn[2]," at time ", 
+      format(Sys.time()), " \n",file=logfile,append=TRUE)
+    data.frame(p=pn[1],n=pn[2],mbp=pn[3],results)
+  }
+)
+cat("Run completed at ", format(Sys.time()), "\n")
+
+stopCluster(thecluster)
+hr.cm.verify.all <- do.call("rbind", hr.cm.verify.all.pre )
+#save("hr.cm.verify.all", file="hr.cm.verify.all.final.rda")
+@
+
+\subsection{Loading the Data}
+We load the data from the simulation runs, add a few
+calculations, and sort the data for later use.
+<<data-step06a, eval=FALSE>>=
+# load the saved data from the simulation
+load("hr.cm.verify.all.final_v2.rda")
+
+head( hr.cm.verify.all )
+row.names(hr.cm.verify.all) <- NULL
+
+hr.cm.verify.all$m.asy <- 
+  apply( hr.cm.verify.all[,c("n","p","mcd.alpha")], 1, 
+    function(x) ch99AsymptoticDF(x[1],x[2],x[3])$m.hat.asy)
+
+#thesorter <- function(x) { n <- length(x); x[c(n,1:(n-1))] }
+hr.cm.verify.all <- within( hr.cm.verify.all, {
+      # bin mcd.alpha for plotting
+  mcd.alpha.bin <- ifelse( mcd.alpha == mbp, "MBP", 
+        format( mcd.alpha, digits=3 ))
+      # want MBP to always be first
+  mcd.alpha.bin <- factor( mcd.alpha.bin, ordered=TRUE,
+    levels=thesorter(sort(unique(mcd.alpha.bin)))  )
+  log.sim.asy <- log(m)-log(m.asy)
+  #rm(mbp)
+})
+head(hr.cm.verify.all)
+
+hr.cm.verify.all[duplicated(hr.cm.verify.all[,c("n","p","mcd.alpha")]),]
+
+hr.cm.verify.all$m.hrnew <- 
+  apply( hr.cm.verify.all[,c("n","p","mcd.alpha","m.asy")], 1, 
+    function(x) hr05AdjustedDF( x[1], x[2], x[3], x[4], method="CG" )) ## need to update this for new model
+
+hr.cm.verify.all$m.hrold <- 
+  apply( hr.cm.verify.all[,c("n","p","mcd.alpha","m.asy","mbp")], 1, 
+    function(x) if(x[3]==x[5]) hr05AdjustedDF( x[1], x[2], x[3], x[4], method="HR" ) else NA )
+
+hr.cm.verify.all <- within( hr.cm.verify.all, {
+
+    lsimnew <- log( m ) - log( m.hrnew )
+    lsimold <- ifelse( mcd.alpha.bin == "MBP", log( m ) - log( m.hrold ), NA )
+
+})
+head(hr.cm.verify.all)
+
+# adding noverp variable
+hr.cm.verify.all$noverp <- hr.cm.verify.all$n/hr.cm.verify.all$p
+hr.cm.verify.all$noverp.cut <- cut( hr.cm.verify.all$noverp, breaks = c(0,5,10,20,Inf) )
+levels( hr.cm.verify.all$noverp.cut ) <- c("(0,5]","(5,10]","(10,20]","> 20")
+@
+
+\subsection{a}
+checking that new hardin-rocke extension works well
+<<data-step06b, eval=FALSE>>=
+xxx <- xyplot( lsimnew ~ n | mcd.alpha.bin, 
+        groups = p, 
+        data=hr.cm.verify.all,
+        auto.key=list(space="right",points=TRUE), 
+        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+          main="Log Ratio of Sim. DF to Predicted. DF against Sample Size\nBy Alpha and Dimension",
+          scales=list(y=list(relation="free"),x=list(relation="free")),
+          panel=function(...) {
+                panel.superpose(...)
+                panel.abline(h=0, lty="dotted", col="gray")
+          }
+)
+trellis.device(windows)
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- 1:10
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+@
+
+<<data-step06c, eval=FALSE>>=
+xxx <- xyplot( lsimnew ~ n | noverp.cut, 
+        groups = mcd.alpha.bin, 
+        data=hr.cm.verify.all,
+        auto.key=list(space="right",points=TRUE), 
+        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+          main="Log Ratio of Sim. DF to Predicted. DF against Sample Size\nBy Alpha and Dimension",
+          scales=list(y=list(relation="free"),x=list(relation="free")),
+          panel=function(...) {
+                panel.superpose(...)
+                panel.abline(h=0, lty="dotted", col="gray")
+          }
+)
+trellis.device(windows)
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- 1:10
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+@
+
+<<data-step06d, eval=FALSE>>=
+xxx <- bwplot( noverp.cut ~ -lsimnew  | mcd.alpha.bin, 
+      data=hr.cm.verify.all,
+      strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+  pch = "|",
+  panel = function(...) {
+    panel.bwplot(...)
+    panel.abline(v = 0, lty="dotted")
+  },
+  ylab = "n/v",
+  xlab = "LOG(PREDICTED M/SIMULATED M)",
+  main = "",
+  #scales = list(relation = "free"),#, x=list(rot=0)),
+  horizontal = TRUE
+)
+trellis.device(windows)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="Boxplot_Out_of_Sample_Results.pdf")
+print(xxx)
+dev.off()
+@
+
+<<data-step06e, eval=FALSE>>=
+# 4/26/2012 what are the outliers in each panel
+with(hr.cm.verify.all, tapply(-lsimnew,list(noverp.cut,mcd.alpha.bin),median))
+with(hr.cm.verify.all, tapply(-lsimnew,list(noverp.cut,mcd.alpha.bin),function(x) exp(median(x)) ))
+
+# test whether distribution of results tends to be significantly different from 0
+# if reject, the predicted method has some systematic bias
+with(hr.cm.verify.all, wilcox.test(m,m.hrnew,paired=TRUE)$p.value )
+with(hr.cm.verify.all, wilcox.test(log(m),log(m.hrnew),paired=TRUE)$p.value )
+with(hr.cm.verify.all, wilcox.test(-lsimnew))
+
+# otherwise, no evidence of systematic bias
+# sample size for each case
+with(hr.cm.verify.all, tapply(-lsimnew,list(noverp.cut,mcd.alpha.bin),length))
+with(hr.cm.verify.all, tapply(-lsimnew,list(noverp.cut,mcd.alpha.bin),function(x) wilcox.test(x)$p.value < 0.01/52))
+
+with(hr.cm.verify.all, tapply(-lsimnew,list(mcd.alpha.bin),length))
+with(hr.cm.verify.all, tapply(-lsimnew,list(mcd.alpha.bin),function(x) wilcox.test(x)$p.value < 0.01/13))
+@
+
+<<data-step06f, eval=FALSE>>=
+hr.cm.verify.all.bwdata <- with( hr.cm.verify.all, 
+  tapply( -lsimnew, list(noverp.cut,mcd.alpha.bin), boxplot.stats ) )
+# add labelling information to each list
+for (i in seq(nrow(hr.cm.verify.all.bwdata)) ) {
+  for (j in seq(ncol(hr.cm.verify.all.bwdata)) ) {
+    hr.cm.verify.all.bwdata[i,j][[1]]$noverp.cut <- dimnames(hr.cm.verify.all.bwdata)[[1]][i]
+    hr.cm.verify.all.bwdata[i,j][[1]]$mcd.alpha.bin  <- dimnames(hr.cm.verify.all.bwdata)[[2]][j]
+    nppairs <- unique(subset( hr.cm.verify.all, 
+      (noverp.cut == dimnames(hr.cm.verify.all.bwdata)[[1]][i]) &
+      (mcd.alpha.bin  == dimnames(hr.cm.verify.all.bwdata)[[2]][j]), 
+        select=c(n,p,lsimnew) ))
+    row.names(nppairs) <- NULL
+    hr.cm.verify.all.bwdata[i,j][[1]]$nppairs    <- nppairs
+  }
+}
+@
+
+Create Table 
+<<data-step06f, eval=FALSE>>=
+require(Hmisc)
+
+tabledata <- hr.cm.verify.all[,c("p","n","lsimnew","mcd.alpha.bin","noverp.cut")]
+tabledata$lsimnew <- -tabledata$lsimnew
+tabledata <- tabledata[order(tabledata$noverp.cut,tabledata$mcd.alpha.bin,tabledata$p,tabledata$n),]
+row.names(tabledata) <- NULL
+tabledata <- reshape(tabledata, direction="wide",
+  v.names = "lsimnew",
+  timevar = "mcd.alpha.bin",
+  idvar = c("n","p","noverp.cut")
+)
+my.caption <- "Out of sample performance of the proposed improvement to the Hardin-Rocke methodology, as measured by the logarithm of the ratio of the predicted degrees of freedom to the simulated degrees of freedom. The data in this table is depicted in Figure"
+tabledata.latex <- subset(tabledata,select=-c(noverp.cut))
+dimnames(tabledata.latex)[[2]] <- gsub("lsimnew\\.","",dimnames(tabledata.latex)[[2]])
+row.names(tabledata.latex) <- paste(tabledata.latex$p,"\\vphantom{",tabledata.latex$n,"}",sep="")
+tabledata.latex <- subset(tabledata.latex,select=-c(p))
+
+zzz <- latex(tabledata.latex, 
+      file="HardinRockeOOSResults.tex",
+      caption=my.caption, 
+  label="Table:HRResults",
+  title="",
+  cgroup = c("","$\\mcdalpha = $"),
+  n.cgroup = c(1,13),
+  #colheads = c("p",dimnames(tabledata.latex)[[2]]),
+  cdec=c(0,rep(3,13)),
+  rgroup = c("$n \\leq 5\\nu$","$5\\nu < n \\leq 10\\nu$","$10\\nu < n \\leq 20\\nu$","$n > 20\\nu$"),
+  n.rgroup = tapply(tabledata$noverp.cut,tabledata$noverp.cut,length),
+  longtable=TRUE,
+  size="footnotesize",#small",
+  landscape=TRUE
+)
+rm(zzz)
+@
+
+<<data-step06g, eval=FALSE>>=
+############################################################################3
+# compare to HR method
+
+hr.cm.verify.all.a050 <- rbind(
+  structure(data.frame(subset(hr.cm.verify.all, mcd.alpha.bin=="MBP", 
+    c(p,n,lsimold)),METHOD="HR05"), names=c("p","n","logratio","METHOD")),
+  structure(data.frame(subset(hr.cm.verify.all, mcd.alpha.bin=="MBP", 
+    c(p,n,lsimnew)),METHOD="NEW"), names=c("p","n","logratio","METHOD"))
+)
+
+hr.cm.verify.all.a050$noverp <- hr.cm.verify.all.a050$n/hr.cm.verify.all.a050$p
+hr.cm.verify.all.a050$noverp.cut <- cut( hr.cm.verify.all.a050$noverp, breaks = c(0,5,10,20,Inf) )
+levels( hr.cm.verify.all.a050$noverp.cut ) <- c("0 < n/v <= 5","5 < n/v <= 10","10 < n/v <= 20","n/v > 20")
+
+head(hr.cm.verify.all.a050)
+@
+
+<<data-step06h, eval=FALSE>>=
+xxx <- xyplot( logratio ~ noverp, 
+        groups = METHOD,
+        data=hr.cm.verify.all.a050,
+        auto.key=list(space="right",points=TRUE), 
+        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
+          main="Log Ratio of Sim. DF to Predicted. DF against Sample Size\nBy Alpha and Dimension",
+          scales=list(y=list(relation="free"),x=list(relation="free")),
+          panel=function(...) {
+                panel.superpose(...)
+                panel.abline(h=0, lty="dotted", col="gray")
+          }
+)
+trellis.device(windows)
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- 1:10
+trellis.par.set("superpose.symbol",tss)
+print(xxx)
+dev.off()
+@
+
+<<data-step06i, eval=FALSE>>=
+with(hr.cm.verify.all.a050, tapply( logratio, list(METHOD,noverp), mean ) )
+with(hr.cm.verify.all.a050, tapply( logratio, list(METHOD), mean ) )
+with(hr.cm.verify.all.a050, tapply( logratio, list(METHOD), sd ) )
+with(hr.cm.verify.all.a050, tapply( logratio, list(METHOD), length ) )
+
+with(hr.cm.verify.all.a050, aggregate( logratio, list(METHOD,noverp), function(x) c(length(x),mean(x)) ))
+hr.cm.verify.all.a050.gmeans <- with(hr.cm.verify.all.a050, 
+  aggregate( logratio, list(METHOD,noverp.cut), function(x) c(length(x),mean(x),sd(x)) ))
+# need this to convert the last column from a matrix
+hr.cm.verify.all.a050.gmeans <- data.frame(as.list(hr.cm.verify.all.a050.gmeans))
+names(hr.cm.verify.all.a050.gmeans) <- c("METHOD","noverpcut","nobs","meanlogratio","sdlogratio")
+@
+
+<<data-step06j, eval=FALSE>>=
+xyplot( meanlogratio ~ noverpcut, 
+  groups = METHOD,
+  data = hr.cm.verify.all.a050.gmeans,
+  pch = c("H","C"),
+  col = c("red","blue"),
+  cex = 1.2,
+  panel = function(...) {
+    panel.xyplot(...)
+    panel.abline(h = 0, lty="dotted")
+  }
+)
+@
+
+<<data-step06k, eval=FALSE>>=
+xxx <- bwplot( -logratio ~ METHOD | noverp.cut,
+  data = hr.cm.verify.all.a050,
+  pch = "|",
+  panel = function(...) {
+    panel.bwplot(...)
+    panel.abline(h = 0, lty="dotted")
+  },
+  xlab = "",
+  ylab = "LOG(PREDICTED M/SIMULATED M)",
+  main = "",
+  scales = list(relation = "same")
+)
+print(xxx)
+dev.off()
+
+trellis.device(pdf, file="Boxplot_Me_vs_HR.pdf")
+print(xxx)
+dev.off()
+@
+
+<<data-step06l, eval=FALSE>>=
+hr.cm.verify.all.a050.bwdata <- with(hr.cm.verify.all.a050, 
+  tapply( -logratio, list(noverp.cut,METHOD), boxplot.stats))
+
+with(hr.cm.verify.all.a050, tapply(noverp.cut, noverp.cut, length)  )
+
+hr.cm.verify.all.a050.reshaped <- reshape( 
+  subset(hr.cm.verify.all.a050, select=c(p,n,noverp.cut,logratio,METHOD)),
+  direction="wide",
+  v.names="logratio",
+  timevar="METHOD",
+  idvar=c("p","n","noverp.cut")
+)
+
+# these are the Mann-Whitney test stats reported in section 3 of the paper
+
+with(hr.cm.verify.all.a050.reshaped, 
+  wilcox.test(-logratio.HR05,-logratio.NEW, 
+  alternative="two.sided", paired=TRUE, 
+  conf.int=TRUE, conf.level=0.99))
+
+by(hr.cm.verify.all.a050.reshaped, hr.cm.verify.all.a050.reshaped$noverp.cut,
+  function(xdf) with(xdf,
+  wilcox.test(-logratio.HR05,-logratio.NEW, 
+  alternative="two.sided", paired=TRUE, 
+  conf.int=TRUE, conf.level=0.99))
+)
+@
+
+<<datacm, eval=FALSE>>=
+# make a table of all the simulated c and m values
+require(Hmisc)
+cmtabledata <- hr.cm.results.all[,c("p","n","mcd.alpha","mcd.alpha.bin","m","c")]#"m.asy","c","casyinv")]
+# sort by mcd.alpha so that the MBP entry shows up in the right order 
+cmtabledata <- cmtabledata[ order(cmtabledata$p,cmtabledata$n,cmtabledata$mcd.alpha), ]
+cmtabledata <- cmtabledata[,c("p","n","mcd.alpha.bin","m","c")]
+row.names(cmtabledata) <- NULL
+#head(cmtabledata)
+
+# want to split into NC columns each with NN rows
+NC <- 2
+NN <- 42 # seems to be what we can fit on a page
+NP <- ceiling(nrow(cmtabledata)/(NC*NN)) # number of pages
+cmindex <- rep(1:NN, NP) + rep( (0:(NP-1)) * (NC*NN), each=NN )
+
+cm.caption <- paste(
+  "Wishart degrees of freedom parameter $m_{\\text{sim}}$ and consistency factor $c_{\\text{sim}}$ determined via",
+  "simulation, for various dimensions $\\nu$, sample sizes $n$, and MCD fractions $\\mcdalpha$.",
+  "The abbreviation MBP indicates the maximum breakdown point fraction $\\mcdalphambp$.",
+  sep=" "
+)
+#cmtabledata.latex <- data.frame( cmtabledata[ cmindex, ], " ", cmtabledata[ cmindex + rep(NN,NN*NP), ], " ",
+# cmtabledata[ cmindex + rep(2*NN,NN*NP), ] )
+cmtabledata.latex <- data.frame( cmtabledata[ cmindex, ], " ", cmtabledata[ cmindex + rep(NN,NN*NP), ])
+
+#head( cmtabledata.latex )
+
+zzz <- latex(cmtabledata.latex, 
+      file="TableSimulatedcm.tex",
+      caption=cm.caption, 
+    label="Table:cmresults",
+    title="",
+  size="footnotesize",#small",
+  cdec=rep(c(0,0,2,rep(3,2),0),NC)[-(6*NC)],
+  longtable=TRUE,
+  rowname=NULL,
+  #landscape=TRUE,
+  lines.page=NN,
+  colheads = rep(c("$\\nu$","$n$","$\\mcdalpha$","$m_{\\text{sim}}$",
+    "$c_{\\text{sim}}$",""), NC)[-(6*NC)],
+  col.just = rep(c(rep("r",5),"p{3em}"),NC)[-(6*NC)]
+)
+rm(zzz)
+@
+
+
+
 
 \bibliographystyle{plainnat}
 \bibliography{HardinRockeExtension}
