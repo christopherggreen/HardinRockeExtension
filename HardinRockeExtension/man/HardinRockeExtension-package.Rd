@@ -14,8 +14,8 @@
 \tabular{ll}{
 Package: \tab HardinRockeExtension\cr
 Type: \tab Package\cr
-Version: \tab 1.0.11\cr
-Date: \tab 2015-12-13\cr
+Version: \tab 1.0.13\cr
+Date: \tab 2015-12-17\cr
 License: \tab GPL-2\cr
 }
 The \code{hrSim} and \code{hrSimParallel} functions use the

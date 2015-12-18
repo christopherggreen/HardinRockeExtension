@@ -10,13 +10,15 @@ table13sim.parallel(cl, p, nn, N, B = 250, alpha = c(0.01, 0.025, 0.05), lgf = "
 }
 \arguments{
   \item{cl}{A cluster object, e.g., returned from \code{makePSOCKcluster}.
-    The user must create this object before calling \code{hrSimNewParallel}.}
+    The user must create this object before calling \code{table13sim.parallel}.}
   \item{p}{The dimension of the data used in each simulated run.}
   \item{nn}{The number of observations used in each simulated run.}
   \item{N}{The number of simulations to run.}
   \item{B}{The batch/block size: the number of simulations to run 
     in each block. This is useful when running very large
-    simulation runs (\code{N} very large) where memory is a concern.}
+    simulation runs (\code{N} very large) where memory is a concern. 
+	Blocks are distributed across cluster nodes, so this is also a means
+	of controlling the workload on each node.}
   \item{alpha}{The significance level to use for detecting outliers. Can
     be a vector; the outlier detection tests will be run at each level.}
   %\item{cutoff.method}{String indicating with asymptotic distribution to use
@@ -32,11 +34,23 @@ table13sim.parallel(cl, p, nn, N, B = 250, alpha = c(0.01, 0.025, 0.05), lgf = "
 }
 \details{
   This is a work function designed for use in replicating Tables 1 and 3
-  of Cerioli et al. (2009), page XXX, but using the asymptotic method
+  of Cerioli et al. (2009), pages 344--346, but using the asymptotic method
   of Green and Martin (2014) instead of the Hardin-Rocke method. The
   experiment investigates how many false-positives certain Mahalanobis-based
   tests of outlyingness produce, compared to the nominal Type I error
   rate \eqn{\alpha}.
+
+  For the simulataneous outlier tests, some of the reweighted MCD estimates use
+  a Bonferroni-corrected quantile to compute the inclusion/exclusion threshold.
+  This significance level used is \eqn{\alpha/nn}, and the quantile used is the
+  \eqn{ ( 1 - \alpha/nn ) } quantile of the reference distribution (e.g., chi-squared).
+  This calculation currently requires the use of the function \code{\link{covMcd2}}. 
+
+  Green and Martin also considered some simultaneous outlier tests using quantiles
+  computed based on the distribution of a maximum of iid randon variables. The significance
+  level is \eqn{1 - ((1-\alpha)^(1/nn))} and the quantile used is the 
+  \eqn{ ( 1 - \alpha )^(1/nn) } quantile of the reference distribution. These tests
+  are indicated by the suffix ``ALT'' in the return value of \code{table13sim.parallel}.
 
   Internally the simulation function does \code{B} runs at a time. Blocks
   of size \code{B} are distributed across the cluster. Set \code{B} smaller if 
@@ -53,8 +67,8 @@ table13sim.parallel(cl, p, nn, N, B = 250, alpha = c(0.01, 0.025, 0.05), lgf = "
 	    Column Name \tab Covariate Estimate \tab Test Statistic \cr
         "OGK.T1" \tab OGK estimate (\eqn{\beta = 0.9}) \tab chi-squared \cr 
         "ROGK.T1" \tab Reweighted OGK estimate \tab chi-squared \cr 
-        "SEST.BS.T1" \tab S-estimate using bisquare ? \tab chi-squared \cr 
-        "SEST.RK.T1" \tab S-estimate using Rocke ? (\code{arp = 0.05})\tab chi-squared \cr 
+        "SEST.BS.T1" \tab S-estimate using bisquare \eqn{\rho}-function \tab chi-squared \cr 
+        "SEST.RK.T1" \tab Rocke S-estimate (\code{arp = 0.05})\tab chi-squared \cr 
         "MCDMBP.RAW.T1" \tab MCD (max. breakdown pt.) \tab chi-squared \cr 
         "MCDMBP.GMRAW.T1" \tab MCD (max. breakdown pt.) \tab Green-Martin \cr 
         "MCDMBP.GMADJ.T1" \tab MCD (max. breakdown pt.) \tab Green-Martin (adj.) \cr 
@@ -70,8 +84,8 @@ table13sim.parallel(cl, p, nn, N, B = 250, alpha = c(0.01, 0.025, 0.05), lgf = "
         "OGK.T3" \tab OGK estimate \tab chi-squared \cr 
         "ROGK.T3" \tab Reweighted OGK estimate \tab chi-squared \cr 
         "ROGK.CH.T3" \tab Reweighted OGK estimate using Bonferroni corrected \eqn{\beta} \tab chi-squared \cr 
-        "SEST.BS.T3" \tab S-estimate using bisquare ? \tab chi-squared \cr 
-        "SEST.RK.T3" \tab S-estimate using Rocke ? \tab chi-squared \cr 
+        "SEST.BS.T3" \tab S-estimate using bisquare \eqn{\rho}-function \tab chi-squared \cr 
+        "SEST.RK.T3" \tab Rocke S-estimate \tab chi-squared \cr 
         "MCDMBP.RAW.T3" \tab MCD (max. breakdown pt.) \tab chi-squared \cr 
         "MCDMBP.GMRAW.T3" \tab MCD (max. breakdown pt.) \tab Green-Martin \cr 
         "MCDMBP.GMADJ.T3" \tab MCD (max. breakdown pt.) \tab Green-Martin (adj.) \cr 
@@ -102,8 +116,8 @@ table13sim.parallel(cl, p, nn, N, B = 250, alpha = c(0.01, 0.025, 0.05), lgf = "
         "OGK.T3.ALT" \tab OGK estimate \tab chi-squared \cr 
         "ROGK.T3.ALT" \tab Reweighted OGK estimate \tab chi-squared \cr 
         "ROGK.CH.T3.ALT" \tab Reweighted OGK estimate with Bonferroni correction \tab chi-squared \cr 
-        "SEST.BS.T3.ALT" \tab S-estimate with bisquare ? \tab chi-squared \cr 
-        "SEST.RK.T3.ALT" \tab S-estimate with Rocke ? \tab chi-squared \cr 
+        "SEST.BS.T3.ALT" \tab S-estimate with bisquare \eqn{\rho}-function \tab chi-squared \cr 
+        "SEST.RK.T3.ALT" \tab Rocke S-estimate \tab chi-squared \cr 
         "MCDMBP.RAW.T3.ALT" \tab MCD (max. breakdown pt.) \tab chi-squared \cr 
         "MCDMBP.GMRAW.T3.ALT" \tab MCD (max. breakdown pt.) \tab Green-Martin \cr 
         "MCDMBP.HRRAW.T3.ALT" \tab MCD (max. breakdown pt.) \tab Hardin-Rocke \cr 
@@ -127,17 +141,10 @@ table13sim.parallel(cl, p, nn, N, B = 250, alpha = c(0.01, 0.025, 0.05), lgf = "
         "RMCD95.CH.T3.ALT" \tab Reweighted MCD(0.95) with Bonferroni correction \tab chi-squared \cr 
       }
 	  The adjusted versions of the Hardin-Rocke tests remove the finite
-	  sample correction when the sample size is 100 or greater. (WHY DID
-	  WE DO THIS)
-
-	  Bonferroni quantile
-	  \deqn{ ( 1 - \alpha/nn ) }
-	  Signficance level is \eqn{\alpha/nn}.
-
-	  The alt versions use the chi-squared but with the correction
-	  \deqn{ ( 1 - \alpha )^(1/nn) }.
-	  Significance level is \eqn{1 - ((1-\alpha)^(1/nn))}.
-	}
+	  sample correction when the sample size is 100 or greater. Empirical
+	  tests suggested that Hardin and Rocke did not use this correction 
+	  factor.
+	} % end item
 	\item{The specified values of \code{alpha} correspond to the third 
 	  dimension; the dimnames will be of the form ``alpha'' + \code{alpha}.}
   }
@@ -158,7 +165,7 @@ table13sim.parallel(cl, p, nn, N, B = 250, alpha = c(0.01, 0.025, 0.05), lgf = "
 Written and maintained by Christopher G. Green <christopher.g.green@gmail.com>
 }
 \seealso{
-	\code{\link{table1sim.parallel}}, \code{\link{table13sim.parallel.check}},
+	\code{\link{table1sim.parallel}}
 	\code{\link{CovMcd2}}
 }
 \examples{

@@ -18,21 +18,21 @@ table13sim.parallel.check <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 
     # compute cutoff values for table1 using new method, these will not change in 
     # the block
-    hr50.t1 <- sapply(alpha, function(a)
+    gm50.t1 <- sapply(alpha, function(a)
       hr05CutoffMvnormal(nn,p,mcd.alpha=0.50,signif.alpha=a,method="GM14")$cutoff.pred)
     hr50.orig.t1 <- sapply(alpha, function(a)
       hr05CutoffMvnormal(nn,p,               signif.alpha=a,method="HR")$cutoff.pred)
-    hrmbp.t1 <- sapply(alpha, function(a)
+    gmmbp.t1 <- sapply(alpha, function(a)
       hr05CutoffMvnormal(nn,p,               signif.alpha=a,method="GM14")$cutoff.pred)
     hrmbp.orig.t1 <- sapply(alpha, function(a)
       hr05CutoffMvnormal(nn,p,               signif.alpha=a,method="HR")$cutoff.pred)
     # compute cutoff values for table3 using new method, these will not change in 
     # the block
-    hr50.t3 <- sapply(alpha, function(a)
+    gm50.t3 <- sapply(alpha, function(a)
       hr05CutoffMvnormal(nn,p,mcd.alpha=0.50,signif.alpha=a/nn,method="GM14")$cutoff.pred)
     hr50.orig.t3 <- sapply(alpha, function(a)
       hr05CutoffMvnormal(nn,p,               signif.alpha=a/nn,method="HR")$cutoff.pred)
-    hrmbp.t3 <- sapply(alpha, function(a)
+    gmmbp.t3 <- sapply(alpha, function(a)
       hr05CutoffMvnormal(nn,p,               signif.alpha=a/nn,method="GM14")$cutoff.pred)
     hrmbp.orig.t3 <- sapply(alpha, function(a)
       hr05CutoffMvnormal(nn,p,               signif.alpha=a/nn,method="HR")$cutoff.pred)
@@ -82,11 +82,11 @@ table13sim.parallel.check <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
           # unweighted mcd
           results[j, 1,k] <- mean(mcdmbp@raw.mah > qpalpha.t1[k])
           # unweighted mcd with revised HR distribution
-          results[j, 2,k] <- mean(mcdmbp@raw.mah > hrmbp.t1[k])
+          results[j, 2,k] <- mean(mcdmbp@raw.mah > gmmbp.t1[k])
           # unweighted mcd with original HR distribution
           results[j, 3,k] <- mean(mcdmbp@raw.mah > hrmbp.orig.t1[k])
           # unweighted mcd with no small sample correction (revised)
-          results[j, 4,k] <- mean(mahdist.hr    > hrmbp.t1[k])
+          results[j, 4,k] <- mean(mahdist.hr    > gmmbp.t1[k])
           # unweighted mcd with no small sample correction (original)
           results[j, 5,k] <- mean(mahdist.hr    > hrmbp.orig.t1[k])
           # reweighted mcd (qchisq(0.950,p))
@@ -96,11 +96,11 @@ table13sim.parallel.check <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
           # unweighted mcd
           results[j, 7,k] <- (max(mcdmbp@raw.mah) > qpalpha.t3[k])
           # unweighted mcd with revised HR distribution
-          results[j, 8,k] <- (max(mcdmbp@raw.mah) > hrmbp.t3[k])
+          results[j, 8,k] <- (max(mcdmbp@raw.mah) > gmmbp.t3[k])
           # unweighted mcd with original HR distribution
           results[j, 9,k] <- (max(mcdmbp@raw.mah) > hrmbp.orig.t3[k])
           # unweighted mcd with no small sample correction (revised)
-          results[j,10,k] <- (max(mahdist.hr)    > hrmbp.t3[k])
+          results[j,10,k] <- (max(mahdist.hr)    > gmmbp.t3[k])
           # unweighted mcd with no small sample correction (original)
           results[j,11,k] <- (max(mahdist.hr)    > hrmbp.orig.t3[k])
           # reweighted mcd (qchisq(0.950,p))
@@ -133,12 +133,12 @@ table13sim.parallel.check <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 		  # table 1
           # unweighted mcd
           results[j,14,k] <- mean(mcd50@raw.mah > qpalpha.t1[k])
-          # unweighted mcd with revised HR distribution
-          results[j,15,k] <- mean(mcd50@raw.mah > hr50.t1[k])
+          # unweighted mcd with revised GM distribution
+          results[j,15,k] <- mean(mcd50@raw.mah > gm50.t1[k])
           # unweighted mcd with original HR distribution
           results[j,16,k] <- mean(mcd50@raw.mah > hr50.orig.t1[k])
           # unweighted mcd with no small sample correction (revised)
-          results[j,17,k] <- mean(mahdist.hr    > hr50.t1[k])
+          results[j,17,k] <- mean(mahdist.hr    > gm50.t1[k])
           # unweighted mcd with no small sample correction (original)
           results[j,18,k] <- mean(mahdist.hr    > hr50.orig.t1[k])
           # reweighted mcd (qchisq(0.950,p))
@@ -147,12 +147,12 @@ table13sim.parallel.check <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 		  # table 3
           # unweighted mcd
           results[j,20,k] <- (max(mcd50@raw.mah) > qpalpha.t3[k])
-          # unweighted mcd with revised HR distribution
-          results[j,21,k] <- (max(mcd50@raw.mah) > hr50.t3[k])
+          # unweighted mcd with revised GM distribution
+          results[j,21,k] <- (max(mcd50@raw.mah) > gm50.t3[k])
           # unweighted mcd with original HR distribution
           results[j,22,k] <- (max(mcd50@raw.mah) > hr50.orig.t3[k])
           # unweighted mcd with no small sample correction (revised)
-          results[j,23,k] <- (max(mahdist.hr)    > hr50.t3[k])
+          results[j,23,k] <- (max(mahdist.hr)    > gm50.t3[k])
           # unweighted mcd with no small sample correction (original)
           results[j,24,k] <- (max(mahdist.hr)    > hr50.orig.t3[k])
           # reweighted mcd (qchisq(0.950,p))
@@ -194,8 +194,8 @@ table13sim.parallel.check <- function(cl,p,nn,N,B=250,alpha=c(0.01,0.025,0.05),
 
    clusterExport(cl = cl, c("M","B","blockfcn","p","nn","N","alpha",
      "qpalpha.t1","qpalpha.t3",
-	 "hr50.t1","hr50.orig.t1","hrmbp.t1","hrmbp.orig.t1",
-	 "hr50.t3","hr50.orig.t3","hrmbp.t3","hrmbp.orig.t3",
+	 "gm50.t1","hr50.orig.t1","gmmbp.t1","hrmbp.orig.t1",
+	 "gm50.t3","hr50.orig.t3","gmmbp.t3","hrmbp.orig.t3",
 	 "alphaind","maxtries"),
      envir=sys.frame(pf) )
 
