@@ -1,6 +1,6 @@
 all: pdf clean
 
-pdf: HardinRocke.pdf GreenMartinSimulation.pdf
+pdf: HardinRocke.pdf GreenMartinSimulation.pdf CRA09Simulation.pdf
 
 %.pdf:	%.tex
 	rm -f $@

@@ -63,7 +63,7 @@ Wishart degrees of freedom m associated
 with the Hardin-Rocke approximation to 
 the MCD covariance estimate. \cite{HardinRocke:2005}
 calculated this for the maximum breakdown
-point case of the MCD, and \cite{GreenMartin:2014}
+point case of the MCD, and \cite{GreenMartin:2014a}
 extended this to the MCD using an arbitrary
 fraction of the data.
 
@@ -245,7 +245,7 @@ hr.cm.results.all <- do.call("rbind", hr.cm.results.all.pre )
 
 \section{Analysis of Simulation Results}
 In this section we show how to analyze the simulation
-results and fit the model presented in \cite{GreenMartin:2014}.
+results and fit the model presented in \cite{GreenMartin:2014a}.
 \subsection{Loading the Data}
 We load the data from the simulation runs, add a few
 calculations, and sort the data for later use.
@@ -254,7 +254,6 @@ calculations, and sort the data for later use.
 # load("hr.cm.results.all.final.rda")
 
 # some EDA
-head( hr.cm.results.all )
 with( hr.cm.results.all, table(n, p, mcd.alpha) )
 
 # sort by dimension, sample size, mcd.alpha
@@ -296,14 +295,15 @@ head(hr.cm.results.all)
 # check for duplicated results
 hr.cm.results.all[duplicated(hr.cm.results.all[,c("n","p","mcd.alpha")]),]
 @
+
 \subsection{EDA}
 Next we perform some exploratory data analysis via
-lattice plots.
-<<data-step-02a, eval=FALSE>>=
+lattice plots. For brevity, we provide only one example.
+<<data-step-02a, eval=FALSE, echo=FALSE>>=
 require(lattice)
 @
 
-Plot the (logarithm of ) simulated Wishart degrees of freedom $m$ against 
+Plot the (logarithm of) simulated Wishart degrees of freedom $m$ against 
 sample size $n$ for each dimension $p$ and MCD fraction. 
 <<data-step-02b, eval=FALSE>>=
 xxx <- xyplot( log(m) ~ n | p, 
@@ -455,7 +455,7 @@ dev.off()
 @
 
 Plot the logarithm of the ratio of the simulated $m$ to the asymptotic $m$ against the
-sample size by MCD fraction and dimension. Save this plot for use in the paper.
+sample size by MCD fraction and dimension. This is Figure 6 in \cite{GreenMartin:2014a}. 
 <<data-step-02i, eval=FALSE>>=
 xxx <- xyplot( log.sim.asy ~ n | mcd.alpha.bin, 
   groups = p, 
@@ -487,46 +487,16 @@ print(xxx)
 dev.off()
 @
 
-Plot the ratio of the simulated $m$ to the asymptotic $m$ against the
-sample size by MCD fraction and dimension. Save this plot for use in the paper.
-<<data-step-02j, eval=FALSE>>=
-xxx <- xyplot( exp(log.sim.asy) ~ n | mcd.alpha.bin, 
-  groups = p, 
-  data=hr.cm.results.all,
-  auto.key=list(space="top",points=TRUE,title="DIMENSION",cex=0.6, columns=3), 
-  strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-  main="RATIO OF SIM. DF TO ASY. DF AGAINST SAMPLE SIZE\nBY ALPHA AND DIMENSION",
-  scales=list(y=list(relation="free"),x=list(relation="free")),
-  panel=function(...) {
-    panel.superpose(...)
-    panel.abline(h=1, lty="dashed", col="gray")
-  },
-  xlab="SAMPLE SIZE",
-  ylab="RATIO"
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-
-trellis.device(pdf, file="RatioPlot_SimAsy_final.pdf")
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
 \subsection{Fit model}
-Next we fit the model described in \cite{GreenMartin:2014}
+Next we fit the model described in \cite{GreenMartin:2014a}
 via \texttt{nls}.
 <<data-step-03a, eval=FALSE>>=
-# fit a model where log of ratio decreases like c/n^d, for a power of n that depends on the alpha
+# fit a model where log of ratio decreases like c/n^d, for a 
+# power of n that depends on the alpha
 # and some constant that is a function of alpha, p
 
-nls.final <- nls( log.sim.asy ~  ( b0 + b1*mcd.alpha + b2*p  )/( n^(b4 + b5*mcd.alpha) ),
+nls.final <- nls( log.sim.asy ~ 
+  ( b0 + b1*mcd.alpha + b2*p  )/( n^(b4 + b5*mcd.alpha) ),
   data = hr.cm.results.all,
   start = c(b0 = 0, b1 = 1, b2 = 0, b4 = 0, b5 = 1)
 )
@@ -547,7 +517,7 @@ First we plot the logarithm of the ratio of the value of $m$
 predicted by our model versus the asymptotic $m$ against the 
 logarithm of the ratio of the simulated $m$ to the asymptotic
 $m$. The plot is done within each combination of dimension and
-MCD fraction. This plot is saved for the paper.
+MCD fraction. 
 <<data-step-03b, eval=FALSE>>=
 xxx <- xyplot( log.pred.asy ~ log.sim.asy | p * mcd.alpha.bin,
         data=hr.cm.results.all,
@@ -563,13 +533,6 @@ xxx <- xyplot( log.pred.asy ~ log.sim.asy | p * mcd.alpha.bin,
     }
 )
 trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-
-trellis.device(pdf, file="Log_Predicted_m_Vs_Log_Observed_m_final.pdf")
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
@@ -598,13 +561,6 @@ tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
-
-trellis.device(pdf, file="Predicted_m_Vs_Observed_m_final.pdf")
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
 @
 
 Plot of the logarithm of the ratio of the simulated $m$ to the 
@@ -628,13 +584,6 @@ tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
-
-trellis.device(pdf, file="RatioPlot_LogSimPred_final.pdf")
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
 @
 
 Plot of the logarithm of the ratio of the simulated $m$ to the 
@@ -652,13 +601,6 @@ xxx <- xyplot( log.sim.pred ~ log(n),
     }
 )
 trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-
-trellis.device(pdf, file="RatioPlot_LogSimPred_UNSTRATIFIED_final.pdf")
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
@@ -724,7 +666,7 @@ hr.compare$crit01 <- apply( hr.compare[,c("m","p")], 1,
 @
 
 We plot the value of $m$ versus sample size $n$ for each dimension by
-method. We save this plot.
+method. 
 <<data-step-04d, eval=FALSE>>=
 ######### plots ###############
 xxx <- xyplot( m ~ n | p,
@@ -743,13 +685,6 @@ xxx <- xyplot( m ~ n | p,
     xlab = "NUMBER OF OBSERVATIONS"
 )
 trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-
-trellis.device(pdf, file="ComparisonOfMethodsForAlpha05_final.pdf")
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
@@ -785,7 +720,6 @@ dev.off()
 
 We plot the ratio of the value of $m$ to the asymptotic value of $m$ 
 versus the logarithm of sample size $n$ for each dimension by method. 
-We save this plot.
 <<data-step-04f, eval=FALSE>>=
 xxx <- xyplot( Ratio ~ log(n) | p, 
         groups = method, 
@@ -808,18 +742,10 @@ tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
-
-trellis.device(pdf, file="RatioPlot_LogSimHR_final.pdf")
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
 @
 
 We plot the logarithm of the critical value (at a significance level of $0.01$)  
 versus the sample size $n$ for each dimension by method. 
-We save this plot.
 <<data-step-04g, eval=FALSE>>=
 xxx <- xyplot( log(crit01) ~ n | p,
         groups = method, 
@@ -838,14 +764,6 @@ xxx <- xyplot( log(crit01) ~ n | p,
     layout = c(2,3)
 )
 trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- c(1,2,2,4:10)
-tss$col[1:3] <- c("blue","red","red")
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-
-trellis.device(pdf, file="CritValHRvsSimForAlpha05_final.pdf")
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- c(1,2,2,4:10)
 tss$col[1:3] <- c("blue","red","red")
@@ -878,17 +796,22 @@ hr.not05 <- within( hr.not05, {
   m <- exp( Ratio ) * m.asy
 })  
 # add in critical values that would come from the estimated df parameters
-hr.not05$crit01   <- apply( hr.not05[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.01) )
-hr.not05$crit05   <- apply( hr.not05[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.05) )
-hr.not05$crit025  <- apply( hr.not05[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.025) )
-hr.not05$crit001  <- apply( hr.not05[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.001) )
-hr.not05$crit0001 <- apply( hr.not05[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.0001) )
+hr.not05$crit01   <- apply( hr.not05[,c("m","p")], 1, 
+  function(x) hr05CriticalValue(x[1],x[2],0.01) )
+hr.not05$crit05   <- apply( hr.not05[,c("m","p")], 1, 
+  function(x) hr05CriticalValue(x[1],x[2],0.05) )
+hr.not05$crit025  <- apply( hr.not05[,c("m","p")], 1, 
+  function(x) hr05CriticalValue(x[1],x[2],0.025) )
+hr.not05$crit001  <- apply( hr.not05[,c("m","p")], 1, 
+  function(x) hr05CriticalValue(x[1],x[2],0.001) )
+hr.not05$crit0001 <- apply( hr.not05[,c("m","p")], 1, 
+  function(x) hr05CriticalValue(x[1],x[2],0.0001) )
 @
 
 \subsection{Figures}
-Next we generate some figures for the paper. 
-First a plot of the predicted degrees of freedom versus sample size
-by dimension, MCD fraction, and method.
+Next we generate some figures showing the out-of-sample performance
+of our method. First a plot of the predicted degrees of freedom versus 
+sample size by dimension, MCD fraction, and method.
 <<data-step-05b, eval=FALSE>>=
 xxx <- xyplot( m ~ n | p * mcd.alpha,
         groups = method, 
@@ -907,13 +830,6 @@ xxx <- xyplot( m ~ n | p * mcd.alpha,
     layout = c(2,3)
 )
 trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-
-trellis.device(pdf, file="ComparisonOfMethodsForAlphaNot05_final.pdf")
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
 trellis.par.set("superpose.symbol",tss)
@@ -947,14 +863,6 @@ tss$col[1:3] <- c("blue","red","red")
 trellis.par.set("superpose.symbol",tss)
 print(xxx)
 dev.off()
-
-trellis.device(pdf, file="HRvsSimForAlphaNot05_final.pdf")
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- c(1,2,2,4:10)
-tss$col[1:3] <- c("blue","red","red")
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
 @
 
 Now we look how much the Hardin-Rocke method over- (under-) predicts the value of $m$.
@@ -969,6 +877,7 @@ hr.not05.a75 <- within( hr.not05.a75, {
 })
 @
 
+Here is Figure 1 in \cite{GreenMartin:2014a}.
 <<data-step-05e, eval=FALSE>>=
 xxx <- xyplot( hr.sim.mratio ~ n | p,
   data=hr.not05.a75,
@@ -995,6 +904,7 @@ print(xxx)
 dev.off()
 @
 
+Here is Figure 2 in \cite{GreenMartin:2014a}.
 <<data-step-05f, eval=FALSE>>=
 xxx <- xyplot( hr.sim.crit01ratio ~ n | p,
   data=hr.not05.a75,
@@ -1032,6 +942,7 @@ hr.not05.a95 <- within( hr.not05.a75, {
 })
 @
 
+Here is Figure 3 in \cite{GreenMartin:2014a}.
 <<data-step-05h, eval=FALSE>>=
 xxx <- xyplot( hr.sim.mratio ~ n | p,
   data=hr.not05.a95,
@@ -1058,6 +969,7 @@ print(xxx)
 dev.off()
 @
 
+Figure 4 in \cite{GreenMartin:2014a}.
 <<data-step-05i, eval=FALSE>>=
 xxx <- xyplot( hr.sim.crit01ratio ~ n | p,
   data=hr.not05.a95,
@@ -1105,11 +1017,16 @@ hr.mbp <- within( hr.mbp, {
   m <- exp( Ratio ) * m.asy
 })  
 # add in critical values that would come from the estimated df parameters
-hr.mbp$crit01   <- apply( hr.mbp[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.01) )
-hr.mbp$crit05   <- apply( hr.mbp[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.05) )
-hr.mbp$crit025  <- apply( hr.mbp[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.025) )
-hr.mbp$crit001  <- apply( hr.mbp[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.001) )
-hr.mbp$crit0001 <- apply( hr.mbp[,c("m","p")], 1, function(x) hr05CriticalValue(x[1],x[2],0.0001) )
+hr.mbp$crit01   <- apply( hr.mbp[,c("m","p")], 1, 
+  function(x) hr05CriticalValue(x[1],x[2],0.01) )
+hr.mbp$crit05   <- apply( hr.mbp[,c("m","p")], 1, 
+  function(x) hr05CriticalValue(x[1],x[2],0.05) )
+hr.mbp$crit025  <- apply( hr.mbp[,c("m","p")], 1, 
+  function(x) hr05CriticalValue(x[1],x[2],0.025) )
+hr.mbp$crit001  <- apply( hr.mbp[,c("m","p")], 1, 
+  function(x) hr05CriticalValue(x[1],x[2],0.001) )
+hr.mbp$crit0001 <- apply( hr.mbp[,c("m","p")], 1, 
+  function(x) hr05CriticalValue(x[1],x[2],0.0001) )
 
 
 # look at ratio of HR05 to simulated
@@ -1407,8 +1324,9 @@ hr.cm.verify.all$noverp.cut <- cut( hr.cm.verify.all$noverp, breaks = c(0,5,10,2
 levels( hr.cm.verify.all$noverp.cut ) <- c("(0,5]","(5,10]","(10,20]","> 20")
 @
 
-\subsection{a}
-checking that new hardin-rocke extension works well
+\subsection{Figures}
+Plot of the logarithm of the ratio of the simulated $m$ to the predicted $m$ against sample
+size, for each MCD fraction and dimension.
 <<data-step06b, eval=FALSE>>=
 xxx <- xyplot( lsimnew ~ n | mcd.alpha.bin, 
         groups = p, 
@@ -1430,6 +1348,8 @@ print(xxx)
 dev.off()
 @
 
+Plot of the logarithm of the ratio of the simulated $m$ to the predicted $m$ against sample
+size, for each MCD fraction and ratio $n/\nu$ grouping.
 <<data-step06c, eval=FALSE>>=
 xxx <- xyplot( lsimnew ~ n | noverp.cut, 
         groups = mcd.alpha.bin, 
@@ -1451,6 +1371,8 @@ print(xxx)
 dev.off()
 @
 
+Boxplot of the logarithm of the ratio of the predicted $m$ to the simulated $m$ grouped by 
+MCD fraction and ratio $n/\nu$ grouping. Figure 7 in \cite{GreenMartin:2014a}.
 <<data-step06d, eval=FALSE>>=
 xxx <- bwplot( noverp.cut ~ -lsimnew  | mcd.alpha.bin, 
       data=hr.cm.verify.all,
@@ -1475,10 +1397,13 @@ print(xxx)
 dev.off()
 @
 
+Calculate some statistics on the out of sample results.
 <<data-step06e, eval=FALSE>>=
 # 4/26/2012 what are the outliers in each panel
-with(hr.cm.verify.all, tapply(-lsimnew,list(noverp.cut,mcd.alpha.bin),median))
-with(hr.cm.verify.all, tapply(-lsimnew,list(noverp.cut,mcd.alpha.bin),function(x) exp(median(x)) ))
+with(hr.cm.verify.all, 
+  tapply(-lsimnew,list(noverp.cut,mcd.alpha.bin),median))
+with(hr.cm.verify.all, 
+  tapply(-lsimnew,list(noverp.cut,mcd.alpha.bin),function(x) exp(median(x)) ))
 
 # test whether distribution of results tends to be significantly different from 0
 # if reject, the predicted method has some systematic bias
@@ -1488,13 +1413,21 @@ with(hr.cm.verify.all, wilcox.test(-lsimnew))
 
 # otherwise, no evidence of systematic bias
 # sample size for each case
-with(hr.cm.verify.all, tapply(-lsimnew,list(noverp.cut,mcd.alpha.bin),length))
-with(hr.cm.verify.all, tapply(-lsimnew,list(noverp.cut,mcd.alpha.bin),function(x) wilcox.test(x)$p.value < 0.01/52))
+with(hr.cm.verify.all, 
+  tapply(-lsimnew,list(noverp.cut,mcd.alpha.bin),length))
+with(hr.cm.verify.all, 
+  tapply(-lsimnew,list(noverp.cut,mcd.alpha.bin),
+    function(x) wilcox.test(x)$p.value < 0.01/52))
 
-with(hr.cm.verify.all, tapply(-lsimnew,list(mcd.alpha.bin),length))
-with(hr.cm.verify.all, tapply(-lsimnew,list(mcd.alpha.bin),function(x) wilcox.test(x)$p.value < 0.01/13))
+with(hr.cm.verify.all, 
+  tapply(-lsimnew,list(mcd.alpha.bin),length))
+with(hr.cm.verify.all, 
+  tapply(-lsimnew,list(mcd.alpha.bin),
+    function(x) wilcox.test(x)$p.value < 0.01/13))
 @
 
+Boxplot of the logarithm of the ratio of the predicted $m$ to the simulated $m$ grouped by 
+MCD fraction and ratio $n/\nu$ grouping.
 <<data-step06f, eval=FALSE>>=
 hr.cm.verify.all.bwdata <- with( hr.cm.verify.all, 
   tapply( -lsimnew, list(noverp.cut,mcd.alpha.bin), boxplot.stats ) )
@@ -1513,10 +1446,9 @@ for (i in seq(nrow(hr.cm.verify.all.bwdata)) ) {
 }
 @
 
-Create Table 
-<<data-step06f, eval=FALSE>>=
+Create Table 7 in \cite{GreenMartin:2014a}. 
+<<data-step06g, eval=FALSE>>=
 require(Hmisc)
-
 tabledata <- hr.cm.verify.all[,c("p","n","lsimnew","mcd.alpha.bin","noverp.cut")]
 tabledata$lsimnew <- -tabledata$lsimnew
 tabledata <- tabledata[order(tabledata$noverp.cut,tabledata$mcd.alpha.bin,tabledata$p,tabledata$n),]
@@ -1550,28 +1482,27 @@ zzz <- latex(tabledata.latex,
 rm(zzz)
 @
 
-<<data-step06g, eval=FALSE>>=
+<<data-step06h, eval=FALSE>>=
 ############################################################################3
 # compare to HR method
-
-hr.cm.verify.all.a050 <- rbind(
+hr.cm.verify.all.aMBP <- rbind(
   structure(data.frame(subset(hr.cm.verify.all, mcd.alpha.bin=="MBP", 
     c(p,n,lsimold)),METHOD="HR05"), names=c("p","n","logratio","METHOD")),
   structure(data.frame(subset(hr.cm.verify.all, mcd.alpha.bin=="MBP", 
     c(p,n,lsimnew)),METHOD="NEW"), names=c("p","n","logratio","METHOD"))
 )
 
-hr.cm.verify.all.a050$noverp <- hr.cm.verify.all.a050$n/hr.cm.verify.all.a050$p
-hr.cm.verify.all.a050$noverp.cut <- cut( hr.cm.verify.all.a050$noverp, breaks = c(0,5,10,20,Inf) )
-levels( hr.cm.verify.all.a050$noverp.cut ) <- c("0 < n/v <= 5","5 < n/v <= 10","10 < n/v <= 20","n/v > 20")
+hr.cm.verify.all.aMBP$noverp <- hr.cm.verify.all.aMBP$n/hr.cm.verify.all.aMBP$p
+hr.cm.verify.all.aMBP$noverp.cut <- cut( hr.cm.verify.all.aMBP$noverp, breaks = c(0,5,10,20,Inf) )
+levels( hr.cm.verify.all.aMBP$noverp.cut ) <- c("0 < n/v <= 5","5 < n/v <= 10","10 < n/v <= 20","n/v > 20")
 
-head(hr.cm.verify.all.a050)
+head(hr.cm.verify.all.aMBP)
 @
 
-<<data-step06h, eval=FALSE>>=
+<<data-step06i, eval=FALSE>>=
 xxx <- xyplot( logratio ~ noverp, 
         groups = METHOD,
-        data=hr.cm.verify.all.a050,
+        data=hr.cm.verify.all.aMBP,
         auto.key=list(space="right",points=TRUE), 
         strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
           main="Log Ratio of Sim. DF to Predicted. DF against Sample Size\nBy Alpha and Dimension",
@@ -1589,24 +1520,24 @@ print(xxx)
 dev.off()
 @
 
-<<data-step06i, eval=FALSE>>=
-with(hr.cm.verify.all.a050, tapply( logratio, list(METHOD,noverp), mean ) )
-with(hr.cm.verify.all.a050, tapply( logratio, list(METHOD), mean ) )
-with(hr.cm.verify.all.a050, tapply( logratio, list(METHOD), sd ) )
-with(hr.cm.verify.all.a050, tapply( logratio, list(METHOD), length ) )
+<<data-step06j, eval=FALSE>>=
+with(hr.cm.verify.all.aMBP, tapply( logratio, list(METHOD,noverp), mean ) )
+with(hr.cm.verify.all.aMBP, tapply( logratio, list(METHOD), mean ) )
+with(hr.cm.verify.all.aMBP, tapply( logratio, list(METHOD), sd ) )
+with(hr.cm.verify.all.aMBP, tapply( logratio, list(METHOD), length ) )
 
-with(hr.cm.verify.all.a050, aggregate( logratio, list(METHOD,noverp), function(x) c(length(x),mean(x)) ))
-hr.cm.verify.all.a050.gmeans <- with(hr.cm.verify.all.a050, 
+with(hr.cm.verify.all.aMBP, aggregate( logratio, list(METHOD,noverp), function(x) c(length(x),mean(x)) ))
+hr.cm.verify.all.aMBP.gmeans <- with(hr.cm.verify.all.aMBP, 
   aggregate( logratio, list(METHOD,noverp.cut), function(x) c(length(x),mean(x),sd(x)) ))
 # need this to convert the last column from a matrix
-hr.cm.verify.all.a050.gmeans <- data.frame(as.list(hr.cm.verify.all.a050.gmeans))
-names(hr.cm.verify.all.a050.gmeans) <- c("METHOD","noverpcut","nobs","meanlogratio","sdlogratio")
+hr.cm.verify.all.aMBP.gmeans <- data.frame(as.list(hr.cm.verify.all.aMBP.gmeans))
+names(hr.cm.verify.all.aMBP.gmeans) <- c("METHOD","noverpcut","nobs","meanlogratio","sdlogratio")
 @
 
-<<data-step06j, eval=FALSE>>=
+<<data-step06k, eval=FALSE>>=
 xyplot( meanlogratio ~ noverpcut, 
   groups = METHOD,
-  data = hr.cm.verify.all.a050.gmeans,
+  data = hr.cm.verify.all.aMBP.gmeans,
   pch = c("H","C"),
   col = c("red","blue"),
   cex = 1.2,
@@ -1617,9 +1548,10 @@ xyplot( meanlogratio ~ noverpcut,
 )
 @
 
-<<data-step06k, eval=FALSE>>=
+Figure 8 in \cite{GreenMartin:2014a}.
+<<data-step06l, eval=FALSE>>=
 xxx <- bwplot( -logratio ~ METHOD | noverp.cut,
-  data = hr.cm.verify.all.a050,
+  data = hr.cm.verify.all.aMBP,
   pch = "|",
   panel = function(...) {
     panel.bwplot(...)
@@ -1638,14 +1570,14 @@ print(xxx)
 dev.off()
 @
 
-<<data-step06l, eval=FALSE>>=
-hr.cm.verify.all.a050.bwdata <- with(hr.cm.verify.all.a050, 
+<<data-step06m, eval=FALSE>>=
+hr.cm.verify.all.aMBP.bwdata <- with(hr.cm.verify.all.aMBP, 
   tapply( -logratio, list(noverp.cut,METHOD), boxplot.stats))
 
-with(hr.cm.verify.all.a050, tapply(noverp.cut, noverp.cut, length)  )
+with(hr.cm.verify.all.aMBP, tapply(noverp.cut, noverp.cut, length)  )
 
-hr.cm.verify.all.a050.reshaped <- reshape( 
-  subset(hr.cm.verify.all.a050, select=c(p,n,noverp.cut,logratio,METHOD)),
+hr.cm.verify.all.aMBP.reshaped <- reshape( 
+  subset(hr.cm.verify.all.aMBP, select=c(p,n,noverp.cut,logratio,METHOD)),
   direction="wide",
   v.names="logratio",
   timevar="METHOD",
@@ -1654,12 +1586,12 @@ hr.cm.verify.all.a050.reshaped <- reshape(
 
 # these are the Mann-Whitney test stats reported in section 3 of the paper
 
-with(hr.cm.verify.all.a050.reshaped, 
+with(hr.cm.verify.all.aMBP.reshaped, 
   wilcox.test(-logratio.HR05,-logratio.NEW, 
   alternative="two.sided", paired=TRUE, 
   conf.int=TRUE, conf.level=0.99))
 
-by(hr.cm.verify.all.a050.reshaped, hr.cm.verify.all.a050.reshaped$noverp.cut,
+by(hr.cm.verify.all.aMBP.reshaped, hr.cm.verify.all.aMBP.reshaped$noverp.cut,
   function(xdf) with(xdf,
   wilcox.test(-logratio.HR05,-logratio.NEW, 
   alternative="two.sided", paired=TRUE, 
@@ -1667,7 +1599,8 @@ by(hr.cm.verify.all.a050.reshaped, hr.cm.verify.all.a050.reshaped$noverp.cut,
 )
 @
 
-<<datacm, eval=FALSE>>=
+Table 6 in \cite{GreenMartin:2014a}.
+<<data-step07a, eval=FALSE>>=
 # make a table of all the simulated c and m values
 require(Hmisc)
 cmtabledata <- hr.cm.results.all[,c("p","n","mcd.alpha","mcd.alpha.bin","m","c")]#"m.asy","c","casyinv")]
@@ -1713,7 +1646,358 @@ zzz <- latex(cmtabledata.latex,
 rm(zzz)
 @
 
+\section{Retesting}
+Finally, we test the new method by repeating the
+experiment of \cite{HardinRocke:2005}: we simulate
+data sets from a multivariate normal and test how
+many observations are flagged as outliers. Since the
+simulated data sets have no outliers by construction,
+the average false positive rate of our method should
+be close to the Type 1 error rate $\alpha$.
 
+Tables 1 and 2 of \cite{GreenMartin:2014a}.
+
+<<data-step11a,eval=FALSE>>=
+# run simulations in parallel
+require( CerioliOutlierDetection )
+require( HardinRockeExtension )
+require(parallel)
+
+thecluster <- makePSOCKcluster(10)
+
+N.SIM <- 5000
+B.SIM <- 500
+
+# initialize each node
+tmp.rv <- clusterEvalQ( cl = thecluster, {
+  require( CerioliOutlierDetection )
+  require( HardinRockeExtension )
+
+  my.pid <- Sys.getpid()
+  cat("My pid is ", my.pid, "\n")
+  logfile <- paste("Test_Old_Method_Parallel_logfile_",my.pid,".txt",sep="")
+  cat("Initialized\n\n", file=logfile)
+
+  invisible(NULL)
+})
+
+# want each case to be a column so that we can use parLapply
+hr.cases <- as.matrix(expand.grid(list(p=c(5,10,20),n=c(50,100,500,1000),
+  mcd.alpha=c(0.65,0.75,0.85,0.95,0.99))))
+hr.cases <- rbind(cbind(hr.cases,FALSE),
+  t(apply(as.matrix(expand.grid(list(p=c(5,10,20),n=c(50,100,500,1000)))),
+    1,function(x) c(x,mcd.alpha=floor( (x[2] + x[1] + 1)/2 )/x[2],mbp=TRUE) )))
+hr.cases <- unique(hr.cases)
+hr.cases <- hr.cases[ order(hr.cases[,"mcd.alpha"]),]
+hr.cases <- hr.cases[ order(hr.cases[,"n"],decreasing=TRUE),]
+dimnames(hr.cases)[[2]] <- c("p","n","mcd.alpha","mbp")
+hr.cases <- data.frame(t(hr.cases))
+
+cat("Starting run at ", format(Sys.time()), "\n")
+
+hrResults05.old <- lapply(hr.cases, 
+  function(pn,clst,ns,bs) {
+    cat("Trial p = ",pn[1]," n = ",pn[2],"\n")
+    hrSimParallel(cl=clst, p = pn[1] , n = pn[2], 
+      mcd.alpha=pn[3], alpha=0.05, N=ns, B=bs, lgf=logfile)
+  }, clst=thecluster, ns=N.SIM, bs=B.SIM
+)
+
+cat("Run completed at ", format(Sys.time()), "\n")
+
+cat("Starting run at ", format(Sys.time()), "\n")
+
+hrResults01.old <- lapply(hr.cases, 
+  function(pn,clst,ns,bs) {
+    cat("Trial p = ",pn[1]," n = ",pn[2],"\n")
+    hrSimParallel(cl=clst, p = pn[1] , n = pn[2], 
+      mcd.alpha=pn[3], alpha=0.01, N=ns, B=bs, lgf=logfile)
+  }, clst=thecluster, ns=N.SIM, bs=B.SIM
+)
+
+cat("Run completed at ", format(Sys.time()), "\n")
+
+cat("Starting run at ", format(Sys.time()), "\n")
+
+hrResults05.new <- lapply(hr.cases, 
+  function(pn,clst,ns,bs) {
+    cat("Trial p = ",pn[1]," n = ",pn[2],"\n")
+    hrSimNewParallel(cl=clst, p = pn[1] , n = pn[2], 
+      mcd.alpha=pn[3], alpha=0.05, N=ns, B=bs, lgf=logfile)
+  }, clst=thecluster, ns=N.SIM, bs=B.SIM
+)
+
+cat("Run completed at ", format(Sys.time()), "\n")
+
+cat("Starting run at ", format(Sys.time()), "\n")
+
+hrResults01.new <- lapply(hr.cases, 
+  function(pn,clst,ns,bs) {
+    cat("Trial p = ",pn[1]," n = ",pn[2],"\n")
+    hrSimNewParallel(cl=clst, p = pn[1] , n = pn[2], 
+      mcd.alpha=pn[3], alpha=0.01, N=ns, B=bs, lgf=logfile)
+  }, clst=thecluster, ns=N.SIM, bs=B.SIM
+)
+
+cat("Run completed at ", format(Sys.time()), "\n")
+
+stopCluster(thecluster)
+
+# calculate mean false positive rate
+allmeans.hrsimnew05 <- as.data.frame(t(rbind( hr.cases, 
+  100*sapply( hrResults05.new, function(x) colMeans(x) )
+)))
+row.names(allmeans.hrsimnew05) <- NULL
+
+allmeans.hrsimnew01 <- as.data.frame(t(rbind( hr.cases, 
+  100*sapply( hrResults01.new, function(x) colMeans(x) )
+)))
+row.names(allmeans.hrsimnew01) <- NULL
+
+allmeans.hrsimold05 <- as.data.frame(t(rbind( hr.cases, 
+  100*sapply( hrResults05.old, function(x) colMeans(x) )
+)))
+row.names(allmeans.hrsimold05) <- NULL
+
+allmeans.hrsimold01 <- as.data.frame(t(rbind( hr.cases, 
+  100*sapply( hrResults01.old, function(x) colMeans(x) )
+)))
+row.names(allmeans.hrsimold01) <- NULL
+
+
+# calculate std. dev. of false positive rate
+allstds.hrsimnew05 <- as.data.frame(t(rbind( hr.cases, 
+  100*sapply( hrResults05.new, function(x) apply(x,2,sd) )
+)))
+row.names(allstds.hrsimnew05) <- NULL
+
+allstds.hrsimnew01 <- as.data.frame(t(rbind( hr.cases, 
+  100*sapply( hrResults01.new, function(x) apply(x,2,sd) )
+)))
+row.names(allstds.hrsimnew01) <- NULL
+
+allstds.hrsimold05 <- as.data.frame(t(rbind( hr.cases, 
+  100*sapply( hrResults05.old, function(x) apply(x,2,sd) )
+)))
+row.names(allstds.hrsimold05) <- NULL
+
+allstds.hrsimold01 <- as.data.frame(t(rbind( hr.cases, 
+  100*sapply( hrResults01.old, function(x) apply(x,2,sd) )
+)))
+row.names(allstds.hrsimold01) <- NULL
+@
+
+<<data-step12a,eval=FALSE>>=
+require(Hmisc)
+
+allmeans01 <- merge(
+  merge(
+    allmeans.hrsimnew01[,c("p","n","mcd.alpha","mbp","CGPRED.CON")],
+    allstds.hrsimnew01[,c("p","n","mcd.alpha","mbp","CGPRED.CON")],
+    by=c("p","n","mcd.alpha","mbp"),
+    all=TRUE,
+    suffixes=c("MEAN","STD")
+  ),
+  merge(
+    allmeans.hrsimold01[,c("p","n","mcd.alpha","mbp","CGPRED.CON")],
+    allstds.hrsimold01[,c("p","n","mcd.alpha","mbp","CGPRED.CON")],
+    by=c("p","n","mcd.alpha","mbp"),
+    all=TRUE,
+    suffixes=c("MEAN","STD")
+  ),
+  by=c("p","n","mcd.alpha","mbp"),
+  all=TRUE,
+  suffixes=c("NEW","OLD")
+)
+head(allmeans01)
+allmeans01$mcd.alpha.bin <- ifelse( allmeans01$mbp, "MBP", 
+  format( allmeans01$mcd.alpha, 3 ) )
+# make ordered factor with MBP first
+thesorter <- function(x) { n <- length(x); x[c(n,1:(n-1))] }
+allmeans01$mcd.alpha.bin <- factor( allmeans01$mcd.alpha.bin, ordered=TRUE,
+    levels=thesorter(sort(unique(allmeans01$mcd.alpha.bin)))  )
+
+# making the table
+allmeans01 <- within( allmeans01, {
+  # convert to std error
+  CGPRED.CONSTDNEW <- CGPRED.CONSTDNEW/sqrt(5000)
+  CGPRED.CONSTDOLD <- CGPRED.CONSTDOLD/sqrt(5000)
+
+  NEW <- paste( sprintf("%02.2f", CGPRED.CONMEANNEW), " (", 
+    sprintf("%02.2f", CGPRED.CONSTDNEW), ")",sep="" )
+  HR05 <- paste( sprintf("%02.2f", CGPRED.CONMEANOLD), " (", 
+    sprintf("%02.2f", CGPRED.CONSTDOLD), ")",sep="" )
+  n.factor <- factor(n, levels=sort(unique(n)), ordered=TRUE)
+  p.factor <- factor(p, levels=sort(unique(p)), ordered=TRUE)
+})
+head(allmeans01[, c("p.factor","n.factor","mcd.alpha.bin","HR05","NEW")])
+
+allmeans01.reshaped <- reshape( allmeans01[, c("p.factor","n.factor","mcd.alpha.bin",
+    "HR05","NEW")], 
+  direction="wide", v.names=c("HR05","NEW"), timevar="n.factor",
+  idvar=c("p.factor","mcd.alpha.bin")
+)
+head(allmeans01.reshaped)
+
+allmeans01.reshaped <- allmeans01.reshaped[ order( allmeans01.reshaped$p.factor, 
+  allmeans01.reshaped$mcd.alpha.bin), ]
+
+allmeans01.reshaped <- allmeans01.reshaped[,c("p.factor","mcd.alpha.bin",paste(rep(c("HR05","NEW"),4), 
+  rep(levels(allmeans01$n.factor),each=2), sep="."))]
+head(allmeans01.reshaped)
+
+if ( FALSE ) {
+zzz <- latex( allmeans01.reshaped,
+  file="allmeans01.reshaped.tex",
+  caption="foo",
+  label="Table:foo",
+  title="",
+  cgroup=c("","",paste("n =", levels( allmeans01$n.factor) )),
+  n.cgroup=c(1,1,2,2,2,2),
+  colheads=c("p","$\\mcdalpha$",rep(c("HR05","NEW"),4)),
+  cdec=c(0,0,rep(3,8)),
+  rgroup=levels( allmeans01.reshaped$p.factor ),
+  n.rgroup=with( allmeans01.reshaped, tapply( mcd.alpha.bin, p.factor, length)),
+  #longtable=TRUE,
+  size="small",
+  landscape=TRUE,
+  rowname=NULL
+)
+
+zzz <- latex( allmeans01[,c("p.factor","n.factor","mcd.alpha.bin","HR05","NEW")],
+  file="allmeans01.straight.tex",
+  caption="foo2",
+  label="Table:foo2",
+  title="",
+  #cgroup=c("","",paste("n =", levels( allmeans01$n.factor) )),
+  #n.cgroup=c(1,1,2,2,2,2),
+  colheads=c("p","n","$\\mcdalpha$",c("HR05","NEW")),
+  #cdec=c(0,0,0,rep(3,8)),
+  #rgroup=levels( allmeans01.reshaped$p.factor ),
+  #n.rgroup=with( allmeans01.reshaped, tapply( mcd.alpha.bin, p.factor, length)),
+  #longtable=TRUE,
+  size="small",
+  #landscape=TRUE,
+  rowname=NULL
+)
+}
+
+allmeans01.reshaped2 <- allmeans01.reshaped[ order(allmeans01.reshaped$mcd.alpha.bin, allmeans01.reshaped$p.factor), ]
+mycaption <- paste("Mean percentage of simulated data, for selected sample sizes $n$ and dimensions $\\nu$, with",
+  "MCD$(\\mcdalpha)$-based Mahalanobis distances exceeding the 0.01 quantile produced using the",
+  "Hardin-Rocke method (HR05) and the proposed correction method (NEW). Ideally, each percentage should be close to 1\\%.",
+  "Standard errors are given in parentheses and are also expressed in percentages. Compare to Table 2 of",
+  "\\cite{HardinRocke:2005}, which showed the results",
+  "results of using their method in the maximum breakdown point case (MBP) of MCD."
+)
+zzz <- latex( allmeans01.reshaped2[ , c(3:10)],
+  file="allmeans01.reshaped2.tex",
+  caption=mycaption,
+  label="Table:HardinRockeTable2:01",
+  title="",
+  cgroup=c(paste("n =", levels( allmeans01$n.factor) )),
+  n.cgroup=c(2,2,2,2),
+  colheads=c(rep(c("HR05","NEW"),4)),
+  rowname=allmeans01.reshaped2$p.factor,
+  rowlabel="Dimension ($\\nu$)",
+  cdec=c(rep(3,8)),
+  rgroup=paste("\\mcdalpha =",levels( allmeans01.reshaped2$mcd.alpha.bin )),
+  n.rgroup=with( allmeans01.reshaped2, tapply( p.factor, mcd.alpha.bin, length)),
+  #longtable=TRUE,
+  size="small",
+  landscape=TRUE#,
+  #rowname=NULL
+)
+
+
+######################## 0.05 case #####################################
+
+allmeans05 <- merge(
+  merge(
+    allmeans.hrsimnew05[,c("p","n","mcd.alpha","mbp","CGPRED.CON")],
+    allstds.hrsimnew05[,c("p","n","mcd.alpha","mbp","CGPRED.CON")],
+    by=c("p","n","mcd.alpha","mbp"),
+    all=TRUE,
+    suffixes=c("MEAN","STD")
+  ),
+  merge(
+    allmeans.hrsimold05[,c("p","n","mcd.alpha","mbp","CGPRED.CON")],
+    allstds.hrsimold05[,c("p","n","mcd.alpha","mbp","CGPRED.CON")],
+    by=c("p","n","mcd.alpha","mbp"),
+    all=TRUE,
+    suffixes=c("MEAN","STD")
+  ),
+  by=c("p","n","mcd.alpha","mbp"),
+  all=TRUE,
+  suffixes=c("NEW","OLD")
+)
+head(allmeans05)
+allmeans05$mcd.alpha.bin <- ifelse( allmeans05$mbp, "MBP", 
+  format( allmeans05$mcd.alpha, 3 ) )
+# make ordered factor with MBP first
+thesorter <- function(x) { n <- length(x); x[c(n,1:(n-1))] }
+allmeans05$mcd.alpha.bin <- factor( allmeans05$mcd.alpha.bin, ordered=TRUE,
+    levels=thesorter(sort(unique(allmeans05$mcd.alpha.bin)))  )
+
+# making the table
+allmeans05 <- within( allmeans05, {
+  # convert to std error
+  CGPRED.CONSTDNEW <- CGPRED.CONSTDNEW/sqrt(5000)
+  CGPRED.CONSTDOLD <- CGPRED.CONSTDOLD/sqrt(5000)
+
+  NEW <- paste( sprintf("%02.2f", CGPRED.CONMEANNEW), " (", 
+    sprintf("%02.2f", CGPRED.CONSTDNEW), ")",sep="" )
+  HR05 <- paste( sprintf("%02.2f", CGPRED.CONMEANOLD), " (", 
+    sprintf("%02.2f", CGPRED.CONSTDOLD), ")",sep="" )
+  n.factor <- factor(n, levels=sort(unique(n)), ordered=TRUE)
+  p.factor <- factor(p, levels=sort(unique(p)), ordered=TRUE)
+})
+head(allmeans05[, c("p.factor","n.factor","mcd.alpha.bin","HR05","NEW")])
+
+allmeans05.reshaped <- reshape( allmeans05[, c("p.factor","n.factor","mcd.alpha.bin",
+    "HR05","NEW")], 
+  direction="wide", v.names=c("HR05","NEW"), timevar="n.factor",
+  idvar=c("p.factor","mcd.alpha.bin")
+)
+head(allmeans05.reshaped)
+
+allmeans05.reshaped <- allmeans05.reshaped[ order( allmeans05.reshaped$p.factor, 
+  allmeans05.reshaped$mcd.alpha.bin), ]
+
+allmeans05.reshaped <- allmeans05.reshaped[,c("p.factor","mcd.alpha.bin",paste(rep(c("HR05","NEW"),4), 
+  rep(levels(allmeans05$n.factor),each=2), sep="."))]
+head(allmeans05.reshaped)
+
+allmeans05.reshaped2 <- allmeans05.reshaped[ order(allmeans05.reshaped$mcd.alpha.bin, allmeans05.reshaped$p.factor), ]
+
+mycaption <- paste("Mean percentage of simulated data, for selected sample sizes $n$ and dimensions $\\nu$, with",
+  "MCD$(\\mcdalpha)$-based Mahalanobis distances exceeding the 0.05 quantile produced using the",
+  "Hardin-Rocke method (HR05) and the proposed correction method (NEW). Ideally, each percentage should be close to 5\\%.",
+  "Standard errors are given in parentheses and are also expressed in percentages. Compare to Table 1 of",
+  "\\cite{HardinRocke:2005}, which showed the results",
+  "results of using their method in the maximum breakdown point case (MBP) of MCD."
+)
+
+
+zzz <- latex( allmeans05.reshaped2[ , c(3:10)],
+  file="allmeans05.reshaped2.tex",
+  caption=mycaption,
+  label="Table:HardinRockeTable2:05",
+  title="",
+  cgroup=c(paste("n =", levels( allmeans05$n.factor) )),
+  n.cgroup=c(2,2,2,2),
+  colheads=c(rep(c("HR05","NEW"),4)),
+  rowname=allmeans05.reshaped2$p.factor,
+  rowlabel="Dimension ($\\nu$)",
+  cdec=c(rep(3,8)),
+  rgroup=paste("\\mcdalpha =",levels( allmeans05.reshaped2$mcd.alpha.bin )),
+  n.rgroup=with( allmeans05.reshaped2, tapply( p.factor, mcd.alpha.bin, length)),
+  #longtable=TRUE,
+  size="small",
+  landscape=TRUE#,
+  #rowname=NULL
+)
+@
 
 
 \bibliographystyle{plainnat}
