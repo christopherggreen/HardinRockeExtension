@@ -298,11 +298,14 @@ hr.cm.results.all[duplicated(hr.cm.results.all[,c("n","p","mcd.alpha")]),]
 
 \subsection{EDA}
 Next we perform some exploratory data analysis via
-lattice plots. For brevity, we provide only one example.
+lattice plots to understand how the simulated $m$ differs from the 
+asymptotic $m$, as a function of $n$, $p$, and $\alpha$. For brevity, 
+we provide only a few examples.
 <<data-step-02a, eval=FALSE, echo=FALSE>>=
 require(lattice)
 @
 
+\subsubsection{EDA Example 1}
 Plot the (logarithm of) simulated Wishart degrees of freedom $m$ against 
 sample size $n$ for each dimension $p$ and MCD fraction. 
 <<data-step-02b, eval=FALSE>>=
@@ -321,139 +324,7 @@ print(xxx)
 dev.off()
 @
 
-Plot the consistency correction $c$ against sample size $n$ for each dimension $p$
-and MCD fraction. 
-<<data-step-02c, eval=FALSE>>=
-xxx <- xyplot( c ~ n | p, 
-        groups = mcd.alpha.bin, 
-        data=subset(hr.cm.results.all, n >= 500 & mcd.alpha >= 0.9),
-        auto.key=list(space="right",points=TRUE), 
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    main="Simulated Degrees of Freedom against Sample Size\nBy Alpha and Dimension",
-    panel = function(x,y,...) {
-          panel.xyplot(x,y,...) 
-          panel.xyplot(x,x/(x-1),type="l",lty="dotted",col="black")
-    }
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
-Plot the logarithm of $m$ against logarithm of sample size $n$ for each dimension $p$
-and MCD fraction. 
-<<data-step-02c, eval=FALSE>>=
-xxx <- xyplot( log(m) ~ log(n) | p, 
-        groups = mcd.alpha.bin, 
-        data=hr.cm.results.all,
-        auto.key=list(space="right",points=TRUE), 
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    main="Simulated Degrees of Freedom against Log Sample Size\nBy Alpha and Dimension"
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
-Plot the asymptotic degrees of freedom against sample size by dimension and 
-MCD fraction.
-<<data-step-02d, eval=FALSE>>=
-xxx <- xyplot( log(m.asy) ~ n | p, 
-        groups = mcd.alpha.bin, 
-        data=hr.cm.results.all,
-        auto.key=list(space="right",points=TRUE), 
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    main="Asymptotic Degrees of Freedom against Sample Size\nBy Alpha and Dimension"
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
-Plot the asymptotic degrees of freedom against the logarithm of sample size 
-by dimension and MCD fraction.
-<<data-step-02e, eval=FALSE>>=
-xxx <- xyplot( log(m.asy) ~ log(n) | p, 
-        groups = mcd.alpha.bin, 
-        data=hr.cm.results.all,
-        auto.key=list(space="right",points=TRUE), 
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    main="Asymptotic Degrees of Freedom against Log Sample Size\nBy Alpha and Dimension"
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
-Plot the ratio of the simulated $m$ to the asymptotic $m$ against sample size
-by dimension and MCD fraction.
-<<data-step-02f, eval=FALSE>>=
-xxx <- xyplot( exp(log.sim.asy) ~ n | p, 
-        groups = mcd.alpha.bin, 
-        data=hr.cm.results.all,
-        auto.key=list(space="right",points=TRUE), 
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    main="Ratio of Sim. DF to Asy. DF against Sample Size\nBy Alpha and Dimension",
-    scales=list(y=list(relation="free"))
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
-Plot the logarithm of the ratio of the simulated $m$ to the asymptotic $m$ against the
-logrithm of sample size by dimension and MCD fraction.
-<<data-step-02g, eval=FALSE>>=
-xxx <- xyplot( log.sim.asy ~ log(n) | p, 
-        groups = mcd.alpha.bin, 
-        data=hr.cm.results.all,
-        auto.key=list(space="right",points=TRUE), 
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    main="Log Ratio of Sim. DF to Asy. DF against Log Sample Size\nBy Alpha and Dimension",
-    scales=list(y=list(relation="free"))
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
-Plot the logarithm of the ratio of the simulated $m$ to the asymptotic $m$ against the
-sample size by dimension and MCD fraction.
-<<data-step-02h, eval=FALSE>>=
-xxx <- xyplot( log.sim.asy ~ n | p, 
-        groups = mcd.alpha.bin, 
-        data=hr.cm.results.all,
-        auto.key=list(space="right",points=TRUE), 
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    main="Log Ratio of Sim. DF to Asy. DF against Sample Size\nBy Alpha and Dimension",
-    scales=list(y=list(relation="free"))
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
+\subsubsection{EDA Example 2}
 Plot the logarithm of the ratio of the simulated $m$ to the asymptotic $m$ against the
 sample size by MCD fraction and dimension. This is Figure 6 in \cite{GreenMartin:2014a}. 
 <<data-step-02i, eval=FALSE>>=
@@ -471,14 +342,6 @@ xxx <- xyplot( log.sim.asy ~ n | mcd.alpha.bin,
   xlab="SAMPLE SIZE",
   ylab="LOG RATIO"
 )
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-
-
 trellis.device(pdf, file="RatioPlot_LogSimAsy_final.pdf")
 tss <- trellis.par.get("superpose.symbol")
 tss$pch <- 1:10
@@ -487,21 +350,23 @@ print(xxx)
 dev.off()
 @
 
-\subsection{Fit model}
+\subsection{Fitting the model}
 Next we fit the model described in \cite{GreenMartin:2014a}
-via \texttt{nls}.
+via \texttt{nls}: the EDA suggests that the log of the ratio
+of the simulated $m$ to the asymptotic $m$ decreases like 
+$c/n^d$, where $d$ is a function of $\alpha$ and $c$ is a function
+of $\alpha$ and $p$.
 <<data-step-03a, eval=FALSE>>=
-# fit a model where log of ratio decreases like c/n^d, for a 
-# power of n that depends on the alpha
-# and some constant that is a function of alpha, p
-
 nls.final <- nls( log.sim.asy ~ 
   ( b0 + b1*mcd.alpha + b2*p  )/( n^(b4 + b5*mcd.alpha) ),
   data = hr.cm.results.all,
   start = c(b0 = 0, b1 = 1, b2 = 0, b4 = 0, b5 = 1)
 )
 summary(nls.final)
+@
 
+Add the predicted values to the data set.
+<<data-step-03b, eval=FALSE>>=
 hr.cm.results.all$log.pred.asy <- predict( nls.final, 
   newdata=hr.cm.results.all[,c("mcd.alpha","p","n")] )
 hr.cm.results.all <- within(hr.cm.results.all, 
@@ -512,13 +377,14 @@ hr.cm.results.all <- within(hr.cm.results.all,
 )
 @
 
-We perform a bit of EDA to check our results.
-First we plot the logarithm of the ratio of the value of $m$
+Next we would perform some model diagnostics. 
+For example, we can plot the logarithm of the ratio of the value of $m$
 predicted by our model versus the asymptotic $m$ against the 
 logarithm of the ratio of the simulated $m$ to the asymptotic
-$m$. The plot is done within each combination of dimension and
+$m$ to see how well our predicted values line up with the simulated values. 
+The plot is done within each combination of dimension and
 MCD fraction. 
-<<data-step-03b, eval=FALSE>>=
+<<data-step-03c, eval=FALSE>>=
 xxx <- xyplot( log.pred.asy ~ log.sim.asy | p * mcd.alpha.bin,
         data=hr.cm.results.all,
         auto.key=list(space="right",points=TRUE), 
@@ -540,77 +406,9 @@ print(xxx)
 dev.off()
 @
 
-Here is a plot of the predicted $m$ versus the simulated $m$.
-<<data-step-03c, eval=FALSE>>=
-xxx <- xyplot( m.pred ~ m | p * mcd.alpha.bin,
-        data=hr.cm.results.all,
-        auto.key=list(space="right",points=TRUE), 
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    main="Predicted m vs observed m",
-    scales=list(y=list(relation="free"),x=list(relation="free")),
-    page=function(n) Sys.sleep(5),
-    layout=c(6,3),
-    panel=function(...) {
-    panel.xyplot(...)
-    panel.abline(c(0,1), col="gray", lty="dotted")
-    }
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
-Plot of the logarithm of the ratio of the simulated $m$ to the 
-predicted $m$ against sample size $n$, by MCD alpha and dimension.
-<<data-step-03d, eval=FALSE>>=
-xxx <- xyplot( log.sim.pred ~ n | mcd.alpha.bin, 
-        groups = p, 
-        data=hr.cm.results.all,
-        auto.key=list(space="right",points=TRUE), 
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    main="Log Ratio of Sim. DF to Predicted DF against Sample Size\nBy Alpha and Dimension",
-    scales=list(y=list(relation="free"),x=list(relation="free")),
-    panel=function(...) {
-    panel.superpose(...)
-    panel.abline(h=0, lty="dotted", col="gray")
-    }
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
-Plot of the logarithm of the ratio of the simulated $m$ to the 
-predicted $m$ against the logarithm of sample size $n$.
-<<data-step-03d, eval=FALSE>>=
-xxx <- xyplot( log.sim.pred ~ log(n),
-        data=hr.cm.results.all,
-        auto.key=list(space="right",points=TRUE), 
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    main="Log Ratio of Sim. DF to Predicted DF against Sample Size",
-    scales=list(y=list(relation="free"),x=list(relation="free")),
-    panel=function(...) {
-    panel.xyplot(...)
-    panel.abline(h=0, lty="dotted", col="gray")
-    }
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
 \subsection{Comparing our model to the Hardin and Rocke model: maximum breakdown point case}
-We compare our model's estimates for the maximum breakdown point
-case against those from the Hardin and Rocke paper.
+We compare our model's estimates for $m$ in the maximum breakdown point
+case against those from the Hardin and Rocke model.
 <<data-step-04a, eval=FALSE>>=
 # compare our model to HR for alpha = MBP
 # hr: log (ratio ) = 0.725 - 0.0063p - 0.078 log(n)
@@ -619,29 +417,6 @@ hr.compare <- unique(subset( hr.cm.results.all, mcd.alpha.bin == "MBP",
       select=c("n","p","log.sim.asy","log.pred.asy") ))
 hr.compare$log.hr.asy <- apply( hr.compare[,c("n","p")], 1,
   function(x) 0.725 - 0.0063*x[2] - 0.078*log(x[1]))
-
-# compare our simulated m to those in the hardin-rocke paper
-hr05p941 <- data.frame(n=c(50,100,500,1000),p=c(5,10,10,20),
-  m=c(13.09,32.76,122.32,318.05),m.asy=c(8.76,24.56,106.51,282.87))
-
-hr05p941check <- merge( hr05p941, 
-  subset(hr.cm.results.all, mcd.alpha.bin=="MBP", c("n","p","m","m.asy")),
-  by=c("n","p"),
-  suffixes=c("HR","CG"),
-  all=FALSE
-)
-head(hr05p941check)
-@
-
-We can also try fitting a linear model on data from the same parameter set that 
-Hardin and Rocke used.
-<<data-step-04b, eval=FALSE>>=
-# fit a linear model on the same data HR used
-hr05.model <- lm( log.sim.asy ~ p + log(n), data=subset(hr.cm.results.all, 
-  mcd.alpha.bin=="MBP" & p %in% c(3,5,7,10,15,20) & n %in% c(50,100,250,500,750,1000), 
-    c("n","p","log.sim.asy","mcd.alpha"))
-)
-summary(hr05.model)
 @
 
 We build a data set to compare the simulated method, the Hardin and
@@ -653,7 +428,6 @@ hr.compare$method <- factor( hr.compare$time, labels=c("SIM","CG","HR") )
 row.names(hr.compare) <- NULL
 hr.compare <- subset( hr.compare, select = c(p, n, log.sim.asy, method) )
 names(hr.compare)[3] <- "Ratio"
-head(hr.compare)
 
 hr.compare$m.asy <- apply( hr.compare[,c("n","p")], 1, 
   function(x) ch99AsymptoticDF(x[1],x[2])$m.hat.asy )
@@ -665,10 +439,10 @@ hr.compare$crit01 <- apply( hr.compare[,c("m","p")], 1,
   function(x) hr05CriticalValue(x[1],x[2],0.01) )
 @
 
-We plot the value of $m$ versus sample size $n$ for each dimension by
+With this data set we can compare the predicted $m$ from each method. For example,
+we can plot the value of $m$ versus sample size $n$ for each dimension by
 method. 
 <<data-step-04d, eval=FALSE>>=
-######### plots ###############
 xxx <- xyplot( m ~ n | p,
         groups = method, 
         data=hr.compare,
@@ -692,91 +466,11 @@ print(xxx)
 dev.off()
 @
 
-We plot the ratio of the value of $m$ to the asymptotic value of $m$ 
-versus sample size $n$ for each dimension by method. 
-<<data-step-04e, eval=FALSE>>=
-xxx <- xyplot( Ratio ~ n | p, 
-        groups = method, 
-        data=hr.compare,
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","PROPOSAL","HR05")), 
-    main="LOG OF RATIO OF CALCULATED DF TO ASYMPTOTIC DF",
-    scale=list(x=list(relation="free"),y=list(relation="free")),
-    panel=function(...) {
-    panel.superpose(...)
-    panel.abline(h=0, lty="dotted", col="gray")
-    }, 
-    pty = "m",
-    ylab = "LOG RATIO",
-    xlab = "NUMBER OF OBSERVATIONS"
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
-We plot the ratio of the value of $m$ to the asymptotic value of $m$ 
-versus the logarithm of sample size $n$ for each dimension by method. 
-<<data-step-04f, eval=FALSE>>=
-xxx <- xyplot( Ratio ~ log(n) | p, 
-        groups = method, 
-        data=hr.compare,
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","PROPOSAL","HR05")), 
-    main="LOG OF RATIO OF CALCULATED DF TO ASYMPTOTIC DF",
-    scale=list(x=list(relation="free"),y=list(relation="free")),
-    panel=function(...) {
-    panel.superpose(...)
-    panel.abline(h=0, lty="dotted", col="gray")
-    }, 
-    pty = "m",
-    ylab = "LOG RATIO",
-    xlab = "LOG OF NUMBER OF OBSERVATIONS"
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- 1:10
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
-We plot the logarithm of the critical value (at a significance level of $0.01$)  
-versus the sample size $n$ for each dimension by method. 
-<<data-step-04g, eval=FALSE>>=
-xxx <- xyplot( log(crit01) ~ n | p,
-        groups = method, 
-        data=subset(hr.compare, method %in% c("SIM","HR")),
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","HR05")), 
-    main="CRITICAL VALUES BASED ON SIMULATED AND\n HARDIN-ROCKE DEGREES OF FREEDOM",
-    scale=list(x=list(relation="free"),y=list(relation="free")),
-    panel=function(...) {
-    panel.superpose(...)
-    panel.abline(h=0, lty="dotted", col="gray")
-    }, 
-    pty = "m",
-    ylab = "LOG OF CRITICAL VALUE",
-    xlab = "NUMBER OF OBSERVATIONS",
-    layout = c(2,3)
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- c(1,2,2,4:10)
-tss$col[1:3] <- c("blue","red","red")
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
 \subsection{Comparing our model to the Hardin and Rocke model: non-maximum breakdown point case}
 Next we focus on the cases where an MCD fraction other than 
 the maximum breakdown point case is used. We compare our model's 
-estimates for the non-maximum breakdown point case against 
-those that would be implied from the Hardin and Rocke paper.
+estimates for $m$ in the non-maximum breakdown point case against 
+those that would be implied from the Hardin and Rocke model.
 <<data-step-05a, eval=FALSE>>=
 hr.not05 <- subset(hr.cm.results.all, mcd.alpha.bin != "MBP", 
   c(mcd.alpha,p,n,log.sim.asy,log.pred.asy))
@@ -785,7 +479,6 @@ hr.not05$log.hr.asy <- apply( hr.not05[,c("n","p")], 1,
 
 hr.not05 <- reshape( hr.not05, direction="long", 
   varying=list(ratio=c("log.sim.asy","log.pred.asy","log.hr.asy")))
-head(hr.not05)
 hr.not05$method <- factor( hr.not05$time, labels=c("SIM","NEW","HR") )
 row.names(hr.not05) <- NULL
 hr.not05 <- subset( hr.not05, select = c(mcd.alpha, p, n, log.sim.asy, method) )
@@ -810,8 +503,8 @@ hr.not05$crit0001 <- apply( hr.not05[,c("m","p")], 1,
 
 \subsection{Figures}
 Next we generate some figures showing the out-of-sample performance
-of our method. First a plot of the predicted degrees of freedom versus 
-sample size by dimension, MCD fraction, and method.
+of our method. For example, here is a plot of the predicted degrees 
+of freedom versus sample size by dimension, MCD fraction, and method.
 <<data-step-05b, eval=FALSE>>=
 xxx <- xyplot( m ~ n | p * mcd.alpha,
         groups = method, 
@@ -837,36 +530,10 @@ print(xxx)
 dev.off()
 @
 
-Here is the same plot but just for the simulated values of $m$ and the
-Hardin-Rocke case.
-<<data-step-05c, eval=FALSE>>=
-xxx <- xyplot( m ~ n | p * mcd.alpha,
-        groups = method, 
-        data=subset(hr.not05, method %in% c("SIM","HR")),
-        strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
-    auto.key=list(space="bottom",points=TRUE, text=c("SIMULATED","HR05")), 
-    main="PREDICTED DEGREES OF FREEDOM",
-    scale=list(x=list(relation="free"),y=list(relation="free")),
-    panel=function(...) {
-    panel.superpose(...)
-    panel.abline(h=0, lty="dotted", col="gray")
-    }, 
-    pty = "m",
-    ylab = "DEGREES OF FREEDOM",
-    xlab = "NUMBER OF OBSERVATIONS",
-    layout = c(2,3)
-)
-trellis.device(windows)
-tss <- trellis.par.get("superpose.symbol")
-tss$pch <- c(1,2,2,4:10)
-tss$col[1:3] <- c("blue","red","red")
-trellis.par.set("superpose.symbol",tss)
-print(xxx)
-dev.off()
-@
-
 Now we look how much the Hardin-Rocke method over- (under-) predicts the value of $m$.
-First we look at the behavior when 75\% of the data is used in the MCD calculations.
+We were particularly concerned with predicting $m$ when 75\% and 95\% of the data is
+used in the MCD calculations (for later use in the \cite{Cerioli:2010} tests), so we
+break those cases out.
 <<data-step-05d, eval=FALSE>>=
 # look at ratio of HR05 to simulated
 hr.not05.a75 <- reshape( subset(hr.not05, (method %in% c("SIM","HR")) & mcd.alpha == 0.75 ), 
@@ -875,9 +542,15 @@ hr.not05.a75 <- within( hr.not05.a75, {
   hr.sim.mratio <- m.HR/m.SIM
       hr.sim.crit01ratio <- crit01.HR/crit01.SIM
 })
+hr.not05.a95 <- reshape( subset(hr.not05, (method %in% c("SIM","HR")) & mcd.alpha == 0.95 ), 
+  direction="wide", timevar="method", idvar=c("mcd.alpha","p","n") )
+hr.not05.a95 <- within( hr.not05.a75, {
+  hr.sim.mratio <- m.HR/m.SIM
+      hr.sim.crit01ratio <- crit01.HR/crit01.SIM
+})
 @
 
-Here is Figure 1 in \cite{GreenMartin:2014a}.
+This code will produce Figure 1 in \cite{GreenMartin:2014a}.
 <<data-step-05e, eval=FALSE>>=
 xxx <- xyplot( hr.sim.mratio ~ n | p,
   data=hr.not05.a75,
@@ -895,16 +568,12 @@ xxx <- xyplot( hr.sim.mratio ~ n | p,
   pch = 19,
   col = "blue"
 )
-trellis.device(windows)
-print(xxx)
-dev.off()
-
 trellis.device(pdf, file="HRvsSimRatioForAlphaNot05_final_a75.pdf")
 print(xxx)
 dev.off()
 @
 
-Here is Figure 2 in \cite{GreenMartin:2014a}.
+This code will produce Figure 2 in \cite{GreenMartin:2014a}.
 <<data-step-05f, eval=FALSE>>=
 xxx <- xyplot( hr.sim.crit01ratio ~ n | p,
   data=hr.not05.a75,
@@ -922,27 +591,13 @@ xxx <- xyplot( hr.sim.crit01ratio ~ n | p,
   pch = 19,
   col = "blue"
 )
-trellis.device(windows)
-print(xxx)
-dev.off()
-
 trellis.device(pdf, file="HRvsSimCritRatioForAlphaNot05_final_a75.pdf")
 print(xxx)
 dev.off()
 @
 
 
-Next we look at the behavior when 95\% of the data is used in the MCD calculations.
-<<data-step-05g, eval=FALSE>>=
-hr.not05.a95 <- reshape( subset(hr.not05, (method %in% c("SIM","HR")) & mcd.alpha == 0.95 ), 
-  direction="wide", timevar="method", idvar=c("mcd.alpha","p","n") )
-hr.not05.a95 <- within( hr.not05.a75, {
-  hr.sim.mratio <- m.HR/m.SIM
-      hr.sim.crit01ratio <- crit01.HR/crit01.SIM
-})
-@
-
-Here is Figure 3 in \cite{GreenMartin:2014a}.
+This code will produce Figure 3 in \cite{GreenMartin:2014a}.
 <<data-step-05h, eval=FALSE>>=
 xxx <- xyplot( hr.sim.mratio ~ n | p,
   data=hr.not05.a95,
@@ -960,16 +615,12 @@ xxx <- xyplot( hr.sim.mratio ~ n | p,
   pch = 19,
   col = "blue"
 )
-trellis.device(windows)
-print(xxx)
-dev.off()
-
 trellis.device(pdf, file="HRvsSimRatioForAlphaNot05_final_a95.pdf")
 print(xxx)
 dev.off()
 @
 
-Figure 4 in \cite{GreenMartin:2014a}.
+This code will produce Figure 4 in \cite{GreenMartin:2014a}.
 <<data-step-05i, eval=FALSE>>=
 xxx <- xyplot( hr.sim.crit01ratio ~ n | p,
   data=hr.not05.a95,
@@ -987,16 +638,12 @@ xxx <- xyplot( hr.sim.crit01ratio ~ n | p,
   pch = 19,
   col = "blue"
 )
-trellis.device(windows)
-print(xxx)
-dev.off()
-
 trellis.device(pdf, file="HRvsSimCritRatioForAlphaNot05_final_a95.pdf")
 print(xxx)
 dev.off()
 @
 
-We looked at the ratio for the maximum breakdown point case as well.
+We also looked at how well our model works in the maximum breakdown point case. 
 <<data-step-05j, eval=FALSE>>=
 # check ratio for MBP case
 hr.mbp <- subset(hr.cm.results.all, mcd.alpha.bin == "MBP", 
@@ -1006,7 +653,6 @@ hr.mbp$log.hr.asy <- apply( hr.mbp[,c("n","p")], 1,
 
 hr.mbp <- reshape( hr.mbp, direction="long", 
   varying=list(ratio=c("log.sim.asy","log.pred.asy","log.hr.asy")))
-head(hr.mbp)
 hr.mbp$method <- factor(hr.mbp$time, labels=c("SIM","NEW","HR") )
 row.names(hr.mbp) <- NULL
 hr.mbp <- subset( hr.mbp, select = c(mcd.alpha, p, n, log.sim.asy, method) )
@@ -1027,7 +673,6 @@ hr.mbp$crit001  <- apply( hr.mbp[,c("m","p")], 1,
   function(x) hr05CriticalValue(x[1],x[2],0.001) )
 hr.mbp$crit0001 <- apply( hr.mbp[,c("m","p")], 1, 
   function(x) hr05CriticalValue(x[1],x[2],0.0001) )
-
 
 # look at ratio of HR05 to simulated
 hr.mbp.a50 <- reshape( subset(hr.mbp, (method %in% c("SIM","HR")) ), 

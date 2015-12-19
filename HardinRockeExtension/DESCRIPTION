@@ -1,8 +1,8 @@
 Package: HardinRockeExtension
 Type: Package
 Title: Replication and Extension of Hardin and Rocke (2005), Cerioli et al. (2009)
-Version: 1.0.14
-Date: 2015-12-18
+Version: 1.0.15
+Date: 2015-12-19
 Authors@R: c(person(c("Christopher","G."),"Green",role=c("aut","cre"),
 	email = "christopher.g.green@gmail.com"),
 	person(c("Johanna","S."),"Hardin",role="ctb"),
