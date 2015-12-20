@@ -113,7 +113,7 @@ The \texttt{useXDR} option should be set to FALSE
 on little endian machines for efficiency.
 <<makecluster, eval=FALSE>>=
 thecluster <- makePSOCKcluster(10, 
-	outfile="hrsim_replicate.log", useXDR=FALSE)
+	outfile="gm14_replicate.log", useXDR=FALSE)
 @
 
 We initialize the cluster random number generator
@@ -626,7 +626,8 @@ xxx <- xyplot( hr.sim.crit01ratio ~ n | p,
   data=hr.not05.a95,
   strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
   main="DEGREE OF UNDERPREDICTION of 0.01 CRITICAL VALUE\nBY HARDIN-ROCKE METHOD",
-  ylim=c(0.97*min(hr.not05.a95$hr.sim.crit01ratio),1.03*max(c(1,hr.not05.a95$hr.sim.crit01ratio))),
+  ylim=c(0.97*min(hr.not05.a95$hr.sim.crit01ratio),
+    1.03*max(c(1,hr.not05.a95$hr.sim.crit01ratio))),
   panel=function(...) {
     panel.xyplot(...)
     panel.abline(h=1, lty="dashed", col="black")
@@ -675,9 +676,9 @@ hr.mbp$crit0001 <- apply( hr.mbp[,c("m","p")], 1,
   function(x) hr05CriticalValue(x[1],x[2],0.0001) )
 
 # look at ratio of HR05 to simulated
-hr.mbp.a50 <- reshape( subset(hr.mbp, (method %in% c("SIM","HR")) ), 
+hr.mbp.ambp <- reshape( subset(hr.mbp, (method %in% c("SIM","HR")) ), 
   direction="wide", timevar="method", idvar=c("mcd.alpha","p","n") )
-hr.mbp.a50 <- within( hr.mbp.a50, {
+hr.mbp.ambp <- within( hr.mbp.ambp, {
   hr.sim.mratio <- m.HR/m.SIM
       hr.sim.crit01ratio <- crit01.HR/crit01.SIM
 })
@@ -685,10 +686,11 @@ hr.mbp.a50 <- within( hr.mbp.a50, {
 
 <<data-step-05k, eval=FALSE>>=
 xxx <- xyplot( hr.sim.mratio ~ n | p,
-  data=hr.mbp.a50,
+  data=hr.mbp.ambp,
   strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
   main="DEGREE OF OVERPREDICTION of m\nBY HARDIN-ROCKE METHOD",
-  ylim=c(0.97*min(c(1,hr.mbp.a50$hr.sim.mratio)),1.03*max(hr.mbp.a50$hr.sim.mratio)),
+  ylim=c(0.97*min(c(1,hr.mbp.ambp$hr.sim.mratio)),
+    1.03*max(hr.mbp.ambp$hr.sim.mratio)),
   panel=function(...) {
     panel.xyplot(...)
     panel.abline(h=1, lty="dashed", col="black")
@@ -700,10 +702,6 @@ xxx <- xyplot( hr.sim.mratio ~ n | p,
   pch = 19,
   col = "blue"
 )
-trellis.device(windows)
-print(xxx)
-dev.off()
-
 trellis.device(pdf, file="HRvsSimRatioForMBPCase_final.pdf")
 print(xxx)
 dev.off()
@@ -711,10 +709,10 @@ dev.off()
 
 <<data-step-05l, eval=FALSE>>=
 xxx <- xyplot( hr.sim.crit01ratio ~ n | p,
-  data=hr.mbp.a50,
+  data=hr.mbp.ambp,
   strip=strip.custom(strip.names=FALSE,strip.levels=TRUE),
   main="DEGREE OF UNDERPREDICTION of 0.01 CRITICAL VALUE\nBY HARDIN-ROCKE METHOD",
-  ylim=c(-1.0*min(hr.mbp.a50$hr.sim.crit01ratio),1.03*max(c(1,hr.mbp.a50$hr.sim.crit01ratio))),
+  ylim=c(-1.0*min(hr.mbp.ambp$hr.sim.crit01ratio),1.03*max(c(1,hr.mbp.ambp$hr.sim.crit01ratio))),
   panel=function(...) {
     panel.xyplot(...)
     panel.abline(h=1, lty="dashed", col="black")
@@ -726,10 +724,6 @@ xxx <- xyplot( hr.sim.crit01ratio ~ n | p,
   pch = 19,
   col = "blue"
 )
-trellis.device(windows)
-print(xxx)
-dev.off()
-
 trellis.device(pdf, file="HRvsSimCritRatioForMBPCase_final.pdf")
 print(xxx)
 dev.off()
