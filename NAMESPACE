@@ -1,4 +1,7 @@
 import(robustbase)
+importFrom(abind, abind)
+importFrom(mvtnorm, rmvnorm)
+importFrom(rrcov, CovMcd)
 export(
 	hrSim,
 	hrSimParallel,
