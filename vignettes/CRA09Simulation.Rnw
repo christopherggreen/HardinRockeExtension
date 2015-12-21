@@ -73,6 +73,7 @@ source, you will need to uncomment all the \texttt{R}
 code to actually run the simulation.
 
 \section{Setup}
+a
 
 \bibliographystyle{plainnat}
 \bibliography{HardinRockeExtension}
