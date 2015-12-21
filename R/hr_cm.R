@@ -35,7 +35,7 @@ function(p,n,N,B=10000,
     cat("\t Iteration: ",file=logfile,append=TRUE)
     
     for ( j in 1:b ) {
-      if ( (j %% 50)==0 ) cat(j," ")
+      if ( (j %% 50)==0 ) cat(j," ",file=logfile)
       for ( a in 1:n.mcdalpha ) {
         mcd <- CovMcd(simdata[,,j],alpha=mcd.alpha[a])
         # get the covariance of the MCD subset
