@@ -60,6 +60,12 @@ This vignette shows how to use the function
 Monte Carlo simulation performed in 
 \cite{CerioliRianiAtkinson:2009} to calculate the 
 
+\cite{CerioliRianiAtkinson:2009} focused on the 
+maximum breakdown point case of the MCD, and
+\cite{GreenMartin:2014b} extended this to 
+variants of the MCD (using more of the observations) 
+and several other robust estimates of dispersion.
+
 We assume the reader can set up a cluster
 using the \texttt{parallel} package, but this
 is not necessary: one can create a cluster with
@@ -73,7 +79,396 @@ source, you will need to uncomment all the \texttt{R}
 code to actually run the simulation.
 
 \section{Setup}
-ab
+First, we load some required packages and take care of some performance
+tuning. The simulation requires the \texttt{CerioliOutlierDetection}
+package as well as the \texttt{parallel} package. We also load the
+\texttt{RhpcBLASctl} package to force the use of single-threaded BLAS,
+if possible: with a multi-threaded BLAS on a multi-core machine, the
+cluster ``nodes'' may impede each other. We want each worker to have
+the node to itself for maximum efficiency.
+<<setup, eval=FALSE>>=
+require( RhpcBLASctl             )
+require( parallel                )
+require( CerioliOutlierDetection )
+require( HardinRockeExtension    )
+
+# force single-threaded BLAS if possible
+omp_set_num_threads(1)
+@
+
+Create a cluster using one of the \texttt{makeXXcluster}
+functions from the \texttt{parallel} package. On Windows,
+\texttt{makePSOCKcluster} is the only available option.
+We assume 10 nodes here. \texttt{table13sim.parallel} will 
+distribute the work within a simulation run across 
+the cluster.
+
+The \texttt{useXDR} option should be set to FALSE
+on little endian machines for efficiency.
+<<makecluster, eval=FALSE>>=
+thecluster <- makePSOCKcluster(10,
+  outfile="table1_cluster_socket.log",
+  useXDR=FALSE # these are all little endian machines
+)
+@
+
+We initialize the cluster random number generator
+with a seed; this makes it possible for you to 
+replicate our numbers and the resulting figures.
+<<reproduce, eval=FALSE>>=
+# make reproducible
+clusterSetRNGStream(cl = thecluster, 2014)
+@
+
+Now we initialize each cluster node using
+\texttt{clusterEvalQ}. Each node needs a copy
+of the two libraries we use for the simulation,
+and we create a logfile for each node, tagged
+with the process ID and machine name of the 
+worker process running on the node.
+
+Cerioli et al. used 50000 simulation runs. We set 
+a block size of 250 to manage the memory use on our
+machine; this will allocate 250 runs to each cluster
+node.
+<<clusterinit, eval=FALSE>>=
+N.SIM <- 50000
+B.SIM <- 250
+
+# initialize each node
+tmp.rv <- clusterEvalQ( cl = thecluster, {
+
+  #require(abind,                   quietly=TRUE)
+  #require(rrcov,                   quietly=TRUE)
+  #require(mvtnorm,                 quietly=TRUE)
+  #require(timeSeries,              quietly=TRUE)
+  require(CerioliOutlierDetection, quietly=TRUE)
+  require(HardinRockeExtension,    quietly=TRUE)
+  require( RhpcBLASctl             )
+
+  # force single-threaded BLAS if possible
+  omp_set_num_threads(1)
+
+  # sleep for 30 seconds to allow for other output to be flushed
+  my.pid <- Sys.getpid()
+  my.nodename <- Sys.info()["nodename"]
+  cat("My pid is ", my.pid, " on node ", my.nodename, "\n")
+  logfile <- paste("table1_logfile_",my.nodename,"_",my.pid,".txt",sep="")
+  Sys.sleep(30)
+  cat("Initialized\n\n", file=logfile)
+  cat("My pid is ", my.pid, "on node ", my.nodename, "\n",file=logfile,append=TRUE)
+
+  invisible(NULL)
+})
+@
+
+Next, we generate the cases we will want to run. Each case
+consists of a dimension $p$ and a sample size $n$.  We use 
+a superset of the cases run in \cite{CerioliRianiAtkinson:2009}
+to expand their study.
+
+We chose to order the cases by decreasing sample size so that
+the most ``expensive'' cases would run first on our cluster; this
+is not required.
+
+Finally, we rotate the matrix of cases to a data frame for use
+with lapply and variants (recall that a data frame is a list of
+its columns).
+<<buildcases, eval=FALSE>>=
+all.params <- expand.grid(
+  list(p=seq(2,20,2), n=c(50,75,100,150,200,300,500,1000)))
+# try to order by the size of the problem
+all.params <- all.params[ order( all.params$p * all.params$n, decreasing=TRUE), ]
+all.params <- data.frame(t(as.matrix( all.params )))
+names( all.params ) <- sprintf("V%02d",seq(ncol(all.params)))
+@
+
+\section{Simulation Runs}
+Now we run the simulation. We distribute the work of each
+case across the cluster. 
+
+The results of each case are saved to separate RDA files.
+We also save the random seed after completion of each case.
+Since this simulation can take weeks (or months if you have
+very few nodes), this gives us some protection against 
+interruptions to our cluster---we do not have to redo the
+calculations we have finished, and can restart the random
+number generator at the last saved state. We store the
+sample size and dimension as attributes for later convenience.
+
+Remember to stop your cluster when you're done.
+<<runsim, eval=FALSE>>=
+# using lapply here to prevent simplification of the
+# results 
+
+cat("Starting run at ", format(Sys.time()), "\n")
+
+table1.results.final <- lapply(all.params,
+  function(pn,clst,ns,bs) {
+    cat("Trial p = ",pn[1]," n = ",pn[2],"\n")
+    results <- table13sim.parallel(cl=clst, p = pn[1], nn = pn[2], 
+      N=ns, B=bs, lgf=logfile)
+    attr(results,"p") <- pn[1]
+    attr(results,"n") <- pn[2]
+
+    save("results",file=sprintf("table1_results_final_p%02d_n%04d.rda",pn[1],pn[2]))
+    save(".Random.seed",file=sprintf("table1_randomseedpost_p%02d_n%04d.rda",pn[1],pn[2]))
+    invisible(TRUE)
+  }, 
+  clst=thecluster, ns=N.SIM, bs=B.SIM
+)
+
+cat("Run completed at ", format(Sys.time()), "\n")
+
+stopCluster(thecluster)
+@
+
+\section{Analysis of Simulation Results}
+In this section we show how to analyze the simulation
+results and fit the model presented in \cite{GreenMartin:2014b}.
+\subsection{Loading the Data}
+Since we saved the results of each case to separate files, we need
+to load all of those files and combine the results to one big 
+data set.
+
+First, we create a data structure, \texttt{tmpout}, to store
+the results from each case/file. 
+<<data-step-01a, eval=FALSE>>=
+library( cggRutils )
+library( Hmisc )
+library( lattice )
+tmpout <- list(my.a = 80, my.b = 48, result=NULL)
+
+tmpout$result <- with(tmpout, 
+  list(
+    p=rep(NA, my.a * my.b),
+    n=rep(NA, my.a * my.b),
+    method=rep("", my.a * my.b),
+    mean010=rep(NA, my.a * my.b),
+    sd010=rep(NA, my.a * my.b),
+    mean025=rep(NA, my.a * my.b),
+    sd025=rep(NA, my.a * my.b),
+    mean050=rep(NA, my.a * my.b),
+    sd050=rep(NA, my.a * my.b)
+  )
+)
+@
+
+Next we load each file and 
+copy the data to our data structure. We calculate 
+the average false positive rate and the variability
+of the false positive rate along the way.
+<<data-step-01b, eval=FALSE>>=
+flz <- dir(pattern="table1_results_final_.*\\.rda")
+for ( i in seq(along=flz) ) {
+  ind <- seq.int(tmpout$my.b) + (i-1) * tmpout$my.b
+  load(flz[i])
+  
+  tmpout$result$p[ind]          <- attr(results,"p")
+  tmpout$result$n[ind]          <- attr(results,"n")
+  tmp.mm <- apply(results,c(2,3),mean)
+  tmp.ss <- apply(results,c(2,3),sd)
+  tmpout$result$mean010[ind]    <- tmp.mm[,"alpha0.01"]
+  tmpout$result$sd010[ind]      <- tmp.ss[,"alpha0.01"]
+  tmpout$result$mean025[ind]    <- tmp.mm[,"alpha0.025"]
+  tmpout$result$sd025[ind]      <- tmp.ss[,"alpha0.025"]
+  tmpout$result$mean050[ind]    <- tmp.mm[,"alpha0.05"]
+  tmpout$result$sd050[ind]      <- tmp.ss[,"alpha0.05"]
+  tmpout$result$method[ind]     <- dimnames(results)[[2]]
+}
+@
+
+Now we can convert \texttt{tmpout} to a data frame. We check
+for missing data to catch any errors building the data set 
+(e.g., incorrect number of fields, incorrect number of data sets).
+Finally, we add a column for the ratio $n/p$ as well as a binned
+version of the ratio.
+<<data-step-01c, eval=FALSE>>=
+tmpout$result <- data.frame(tmpout$result)
+stopifnot(nrow(subset( tmpout$result, is.na(mean010) | is.na(sd010) | 
+  is.na(mean025) | is.na(sd025) | is.na(mean050) | is.na(sd050)))==0)
+
+# 2015-02-16 add ratio n/p
+tmpout$result$noverp <- tmpout$result$n / tmpout$result$p 
+tmpout$result$noverp.cut <- cut( tmpout$result$noverp, breaks = c(0,5,10,20,Inf) )
+levels( tmpout$result$noverp.cut ) <- c("(0,5]","(5,10]","(10,20]","> 20")
+@
+
+Next we create versions of the results that have the results for each sample size 
+in columns.
+<<data-step-01d, eval=FALSE>>=
+# reshape with values of n across the top
+tmpout$reshaped$mean010 <- reshape(
+  subset(tmpout$result, select=-c(sd010,sd025,sd050,mean025,mean050,noverp,noverp.cut)),
+  direction="wide",
+  v.names="mean010",
+  idvar=c("p","method"),
+  timevar="n"
+)
+oldn <- names(tmpout$reshaped$mean010 )
+oldn <- gsub("mean010\\.","n = ",oldn)
+oldn <- gsub("method","Method",oldn)
+oldn <- gsub("p","v",oldn)
+names(tmpout$reshaped$mean010 ) <- oldn
+head( tmpout$reshaped$mean010  )
+
+tmpout$reshaped$mean025 <- reshape(
+  subset(tmpout$result, select=-c(sd010,sd025,sd050,mean010,mean050,noverp,noverp.cut)),
+  direction="wide",
+  v.names="mean025",
+  idvar=c("p","method"),
+  timevar="n"
+)
+oldn <- names(tmpout$reshaped$mean025 )
+oldn <- gsub("mean025\\.","n = ",oldn)
+oldn <- gsub("method","Method",oldn)
+oldn <- gsub("p","v",oldn)
+names(tmpout$reshaped$mean025 ) <- oldn
+head( tmpout$reshaped$mean025  )
+
+tmpout$reshaped$mean050 <- reshape(
+  subset(tmpout$result, select=-c(sd010,sd025,sd050,mean025,mean010,noverp,noverp.cut)),
+  direction="wide",
+  v.names="mean050",
+  idvar=c("p","method"),
+  timevar="n"
+)
+oldn <- names(tmpout$reshaped$mean050 )
+oldn <- gsub("mean050\\.","n = ",oldn)
+oldn <- gsub("method","Method",oldn)
+oldn <- gsub("p","v",oldn)
+names(tmpout$reshaped$mean050 ) <- oldn
+head( tmpout$reshaped$mean050  )
+
+
+
+tmpout$reshaped$sd010 <- reshape(
+  subset(tmpout$result, select=-c(mean010,mean025,mean050,sd025,sd050,noverp,noverp.cut)),
+  direction="wide",
+  v.names="sd010",
+  idvar=c("p","method"),
+  timevar="n"
+)
+oldn <- names(tmpout$reshaped$sd010 )
+oldn <- gsub("sd010\\.","n = ",oldn)
+oldn <- gsub("method","Method",oldn)
+oldn <- gsub("p","v",oldn)
+names(tmpout$reshaped$sd010 ) <- oldn
+head( tmpout$reshaped$sd010 )
+
+
+tmpout$reshaped$sd025 <- reshape(
+  subset(tmpout$result, select=-c(mean010,mean025,mean050,sd010,sd050,noverp,noverp.cut)),
+  direction="wide",
+  v.names="sd025",
+  idvar=c("p","method"),
+  timevar="n"
+)
+oldn <- names(tmpout$reshaped$sd025 )
+oldn <- gsub("sd025\\.","n = ",oldn)
+oldn <- gsub("method","Method",oldn)
+oldn <- gsub("p","v",oldn)
+names(tmpout$reshaped$sd025 ) <- oldn
+head( tmpout$reshaped$sd025 )
+
+tmpout$reshaped$sd050 <- reshape(
+  subset(tmpout$result, select=-c(mean010,mean025,mean050,sd025,sd010,noverp,noverp.cut)),
+  direction="wide",
+  v.names="sd050",
+  idvar=c("p","method"),
+  timevar="n"
+)
+oldn <- names(tmpout$reshaped$sd050 )
+oldn <- gsub("sd050\\.","n = ",oldn)
+oldn <- gsub("method","Method",oldn)
+oldn <- gsub("p","v",oldn)
+names(tmpout$reshaped$sd050 ) <- oldn
+head( tmpout$reshaped$sd050 )
+@
+
+The data set actually contains results from replicating Tables 1
+and 3 of \cite{CerioliRianiAtkinson:2009}; we split those out into
+separate data sets.
+<<data-step-01e, eval=FALSE>>=
+# split to table1 and table3 results
+tmpout.t1 <- tmpout
+tmpout.t1$result <- subset( tmpout$result, grepl("\\.T1",method) )
+tmpout.t1$result$method <- tmpout.t1$result$method[drop=TRUE]
+levels(tmpout.t1$result$method) <- gsub("\\.T1$","",levels(tmpout.t1$result$method))
+
+lvs <- c(
+  "MCD75.GM.NOSS","MCD75.GM","MCD75.HR.NOSS","MCD75.HR","MCD75.CHI",
+  "MCD95.GM.NOSS","MCD95.GM","MCD95.HR.NOSS","MCD95.HR","MCD95.CHI",
+  "MCDMBP.GM.NOSS","MCDMBP.GM","MCDMBP.HR.NOSS","MCDMBP.HR","MCDMBP.CHI",
+  "OGK",
+  "RMCD75","RMCD95","RMCDMBP",
+  "ROGK",
+  "SEST.BS","SEST.RK"
+)
+lvs.sorted <- c(
+  "MCDMBP.CHI","MCDMBP.HR","MCDMBP.GM","RMCDMBP","MCDMBP.HR.NOSS","MCDMBP.GM.NOSS",
+  "MCD75.CHI","MCD75.HR","MCD75.GM","RMCD75","MCD75.HR.NOSS","MCD75.GM.NOSS",
+  "MCD95.CHI","MCD95.HR","MCD95.GM","RMCD95","MCD95.HR.NOSS","MCD95.GM.NOSS",
+  "OGK","ROGK","SEST.BS","SEST.RK"
+)
+tmpout.t1$my.b <- length(lvs)
+
+for (var in c("mean010","mean025","mean050","sd010","sd025","sd050")) {
+  tmpout.t1$reshaped[[var]] <- subset( tmpout$reshaped[[var]], grepl("\\.T1",Method) )
+  tmpout.t1$reshaped[[var]]$Method <- tmpout.t1$reshaped[[var]]$Method[drop=TRUE]
+  levels(tmpout.t1$reshaped[[var]]$Method) <- lvs
+  tmpout.t1$reshaped[[var]]$Method <- ordered( tmpout.t1$reshaped[[var]]$Method,
+    levels=lvs.sorted
+  )
+  tmpout.t1$reshaped[[var]] <- tmpout.t1$reshaped[[var]][ order(tmpout.t1$reshaped[[var]]$v, 
+    tmpout.t1$reshaped[[var]]$Method), ]
+}
+
+######################################################################
+
+tmpout.t3 <- tmpout
+tmpout.t3$result <- subset( tmpout$result, grepl("\\.T3",method) )
+tmpout.t3$result$method <- tmpout.t3$result$method[drop=TRUE]
+levels(tmpout.t3$result$method) <- gsub("\\.T3$","",levels(tmpout.t3$result$method))
+
+lvs <- c(
+  "MCD75.GM.NOSS","MCD75.GM","MCD75.HR.NOSS","MCD75.HR","MCD75.CHI",
+  "MCD95.GM.NOSS","MCD95.GM","MCD95.HR.NOSS","MCD95.HR","MCD95.CHI",
+  "MCDMBP.GM.NOSS","MCDMBP.GM","MCDMBP.HR.NOSS","MCDMBP.HR","MCDMBP.CHI",
+  "OGK",
+  "RMCD75.CH","RMCD75","RMCD95.CH","RMCD95","RMCDMBP.CH","RMCDMBP",
+  "ROGK.CH","ROGK",
+  "SEST.BS","SEST.RK"
+)
+lvs.sorted <- c(
+  "MCDMBP.CHI","MCDMBP.HR","MCDMBP.GM","RMCDMBP","RMCDMBP.CH","MCDMBP.HR.NOSS","MCDMBP.GM.NOSS",
+  "MCD75.CHI","MCD75.HR","MCD75.GM","RMCD75","RMCD75.CH","MCD75.HR.NOSS","MCD75.GM.NOSS",
+  "MCD95.CHI","MCD95.HR","MCD95.GM","RMCD95","RMCD95.CH","MCD95.HR.NOSS","MCD95.GM.NOSS",
+  "OGK","ROGK","ROGK.CH","SEST.BS","SEST.RK"
+)
+tmpout.t3$my.b <- length(lvs)
+
+for (var in c("mean010","mean025","mean050","sd010","sd025","sd050")) {
+  tmpout.t3$reshaped[[var]] <- subset( tmpout$reshaped[[var]], grepl("\\.T3",Method) )
+  tmpout.t3$reshaped[[var]]$Method <- tmpout.t3$reshaped[[var]]$Method[drop=TRUE]
+  levels(tmpout.t3$reshaped[[var]]$Method) <- lvs
+  tmpout.t3$reshaped[[var]]$Method <- ordered( tmpout.t3$reshaped[[var]]$Method,
+    levels=lvs.sorted
+  )
+  tmpout.t3$reshaped[[var]] <- tmpout.t3$reshaped[[var]][ order(tmpout.t3$reshaped[[var]]$v, 
+    tmpout.t3$reshaped[[var]]$Method), ]
+}
+
+tmpout.t1$result$mean010.scaled <- tmpout.t1$result$mean010/0.01
+tmpout.t1$result$mean025.scaled <- tmpout.t1$result$mean025/0.01
+tmpout.t1$result$mean050.scaled <- tmpout.t1$result$mean050/0.01
+
+tmpout.t3$result$mean010.scaled <- tmpout.t3$result$mean010/0.01
+tmpout.t3$result$mean025.scaled <- tmpout.t3$result$mean025/0.01
+tmpout.t3$result$mean050.scaled <- tmpout.t3$result$mean050/0.01
+
+rm(lvs,lvs.sorted,oldn,flz,i,tmp.mm,tmp.ss)
+@
 
 \bibliographystyle{plainnat}
 \bibliography{HardinRockeExtension}
