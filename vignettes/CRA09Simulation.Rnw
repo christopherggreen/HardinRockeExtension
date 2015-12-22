@@ -470,6 +470,1504 @@ tmpout.t3$result$mean050.scaled <- tmpout.t3$result$mean050/0.01
 rm(lvs,lvs.sorted,oldn,flz,i,tmp.mm,tmp.ss)
 @
 
+\subsection{Analysis for Individual Hypothesis}
+\subsubsection{Tables}
+We use the reshaped data sets and the \texttt{Hmisc} package to 
+create \LaTeX tables of the average false positive rate and the 
+variability of the false positive rate for the three significance
+levels used ($0.01$, $0.025$, and $0.05$). For brevity, we just 
+show the $0.01$ cases; the others are produced the same way with
+the \texttt{mean025}, \texttt{mean050}, etc., data sets.
+<<table1-step-01a, eval=FALSE>>=
+table.data <- subset( tmpout.t1$reshaped$mean010, !grepl("NOSS",Method) )
+table.data$Method <- table.data$Method[drop=TRUE]
+
+## mean, 0.01 case
+tmpout.t1$caption <- paste(
+  "Size of the individual multivariate outlier tests at the $\\alpha = 0.01$ notional",
+  "level for several estimates of dispersion. ",
+  "Key: HR = MCD estimator with original Hardin-Rocke distributional approximation;",
+  "GM = MCD estimator with modified Green-Martin distributional approximation;",
+  "RMCD = MCD with one-step reweighting; ROGK = OGK with one-step reweighting;",
+  "S-BISQ = S-estimate with using bisquare $\\rho$ function; S-ROCKE = Rocke's S-estimate."
+)
+zzz <- latex(table.data[,-c(1,2)], 
+      file="table1.final.means01.tex",
+      caption=tmpout.t1$caption, 
+  label="Table:Table1:Final:010",
+  title="",
+  rowname=table.data$Method,
+  rowlabel="Method",
+  dec=3,
+  rgroup = paste("Dimension =",as.character(unique(table.data$v))),
+  n.rgroup = rep(nlevels(table.data$Method),length(unique(table.data$v))),
+  longtable=TRUE,
+  size="small"
+)
+@
+
+<<table1-step-01b, eval=FALSE>>=
+## sd, 0.01 case
+table.data <- subset( tmpout.t1$reshaped$sd010, !grepl("NOSS",Method) )
+table.data$Method <- table.data$Method[drop=TRUE]
+
+tmpout.t1$caption <- paste(
+  "Monte Carlo standard deviations for the individual multivariate outlier tests at the ",
+  "$\\alpha = 0.01$ notional level for several estimates of dispersion. Standard errors for the test sizes ",
+  "presented in Table \\ref{Table:Table1:Final:010} can be obtained by dividing corresponding entries in this ",
+  "table by $\\sqrt{50000}$."
+)
+zzz <- latex(table.data[,-c(1,2)], 
+      file="table1.final.sds01.tex",
+      caption=tmpout.t1$caption, 
+  label="Table:Table1:Final:SDS:010",
+  title="",
+  rowname=table.data$Method,
+  rowlabel="Method",
+  dec=3,
+  rgroup = paste("Dimension =",as.character(unique(table.data$v))),
+  n.rgroup = rep(nlevels(table.data$Method),length(unique(table.data$v))),
+  longtable=TRUE,
+  size="small"
+)
+rm(zzz)
+@
+
+\subsubsection{Figures}
+Here we produce all the figures used in \cite{GreenMartin:2014b}
+for the analysis of the individual hypothesis case. These plots
+largely share the same structure, just with different subsets of
+the data (corresponding to different estimators.
+
+The code below produces figures for the $0.01$ significance level
+case; the code for other significance levels is similar and is omitted
+to save space.
+<<table1-step-02a, eval=FALSE>>=
+# MCD with chi-square 
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("MCDMBP.RAW","MCD75.RAW","MCD95.RAW"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75","MCD95","MCDMBP")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_MCD_ChiSq_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02b, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("RMCDMBP","RMCD75","RMCD95"),
+      drop.unused.levels=TRUE)
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_RMCD_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02c, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("MCDMBP.HRRAW","MCD75.HRRAW","MCD95.HRRAW"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.HR","MCD95.HR","MCDMBP.HR")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_MCDHR_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02d, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("MCDMBP.GMRAW","MCD75.GMRAW","MCD95.GMRAW"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.GM","MCD95.GM","MCDMBP.GM")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_MCDGM_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02e, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("MCDMBP.HRADJ","MCD75.HRADJ","MCD95.HRADJ"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.HR","MCD95.HR","MCDMBP.HR")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_MCDHRADJ_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02f, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("MCDMBP.GMADJ","MCD75.GMADJ","MCD95.GMADJ"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.GM","MCD95.GM","MCDMBP.GM")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_MCDGMADJ_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02g, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("MCDMBP.RAW","MCDMBP.HRRAW","MCDMBP.HRADJ","MCDMBP.GMRAW",
+    "MCDMBP.GMADJ","RMCDMBP"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCDMBP.GMADJ","MCDMBP.GM","MCDMBP.HRADJ",
+  "MCDMBP.HR","MCDMBP","RMCDMBP")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_Combined_MCDMBP_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02h, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("MCDMBP.HRRAW","MCDMBP.GMRAW"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCDMBP.GM","MCDMBP.HR")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_Combined_MCDMBP_GMHR_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02i, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("MCD75.RAW","MCD75.HRRAW","MCD75.HRADJ","MCD75.GMRAW",
+    "MCD75.GMADJ","RMCD75"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.GMADJ","MCD75.GM","MCD75.HRADJ",
+  "MCD75.HR","MCD75","RMCD75")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_Combined_MCD75_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02j, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("MCD75.HRRAW","MCD75.GMRAW"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.GM","MCD75.HR")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_Combined_MCD75_GMHR_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02k, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("MCD95.RAW","MCD95.HRRAW","MCD95.HRADJ","MCD95.GMRAW",
+    "MCD95.GMADJ","RMCD95"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD95.GMADJ","MCD95.GM","MCD95.HRADJ",
+  "MCD95.HR","MCD95","RMCD95")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_Combined_MCD95_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02l, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("MCD95.HRRAW","MCD95.GMRAW"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD95.GM","MCD95.HR")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_Combined_MCD95_GMHR_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02m, eval=FALSE>>=
+# make a plot showing how the MCD methods compare for dimension 10
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, (p == 10) & (
+    method %in% c("MCDMBP.RAW","MCDMBP.GMRAW","MCDMBP.HRRAW","RMCDMBP",
+          "MCD75.RAW","MCD75.GMRAW","MCD75.HRRAW","RMCD75",
+          "MCD95.RAW","MCD95.GMRAW","MCD95.HRRAW","RMCD95") ),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.GM","MCD75.HR","MCD75","MCD95.GM",
+  "MCD95.HR","MCD95","MCDMBP.GM","MCDMBP.HR","MCDMBP","RMCD75",
+  "RMCD95","RMCDMBP")
+names(plotdata)[1] <- "DIM"
+plotdata$mcdalpha <- plotdata$method
+lvs <- levels(plotdata$mcdalpha) 
+lvs[grep("MBP",lvs)] <- "MBP"
+lvs[grep("75",lvs)] <- "0.75"
+lvs[grep("95",lvs)] <- "0.95"
+levels(plotdata$mcdalpha) <- lvs
+plotdata$mcdalpha <- factor(plotdata$mcdalpha, ordered=TRUE, levels=c("MBP","0.75","0.95"))
+
+plotdata$mcdvariant <- plotdata$method
+lvs <- levels(plotdata$mcdvariant) 
+lvs[grep("GM$"           ,lvs)] <- "MCD (GM)"
+lvs[grep("HR$"           ,lvs)] <- "MCD (HR)"
+lvs[grep("^RMCD"         ,lvs)] <- "RMCD (CHISQ.)"
+lvs[grep("^MCD[79]5$"    ,lvs)] <- "MCD (CHISQ.)"
+lvs[grep("^MCDMBP$"      ,lvs)] <- "MCD (CHISQ.)"
+levels(plotdata$mcdvariant) <- lvs
+
+theplot <- xyplot( mean010.scaled ~ n | mcdalpha,
+  data = plotdata,
+  groups = mcdvariant,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "DIMENSION = 10",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="free"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  layout=c(3,1),
+  aspect = 1,
+  auto.key = list(space="bottom", points = TRUE, columns = 2, padding.text = 2)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_Compare_MCD_v10_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02n, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("OGK","ROGK"),
+      drop.unused.levels=TRUE)
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="free"), x=list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_OGK_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02o, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("SEST.BS"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- "BISQUARE S-EST."
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="free"), x=list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_BISQ_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02p, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("SEST.RK"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- "ROCKE S-EST."
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="free"), x=list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_ROCKE10_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table1-step-02q, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t1$result, 
+    method %in% c("SEST.BS","SEST.RK"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("BISQUARE S-EST.","ROCKE S-EST")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x=list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Individual_BISQ_ROCKE_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+\subsection{Analysis for Intersection Hypothesis}
+\subsubsection{Tables}
+These work like the tables for the individual hypothesis case.
+Once again we just show the $0.01$ cases; the others are produced 
+the same way with
+the \texttt{mean025}, \texttt{mean050}, etc., data sets.
+<<table3-step-01a, eval=FALSE>>=
+table.data <- subset( tmpout.t3$reshaped$mean010, !grepl("NOSS",Method) )
+table.data$Method <- table.data$Method[drop=TRUE]
+
+## mean, 0.01 case
+tmpout.t3$caption <- paste(
+  "Size of the intersection multivariate outlier tests at the $\\alpha = 0.01$ notional level for several estimates of dispersion. ",
+  "Key: HR = MCD estimator with original Hardin-Rocke distributional approximation;",
+  "GM = MCD estimator with modified Green-Martin distributional approximation;",
+  "RMCD = MCD with one-step reweighting; RMCD.CH = RMCD with Bonferroni-corrected reweighting;",
+  "ROGK = OGK with one-step reweighting;",
+  "ROGK.CH = ROGK with Bonferroni-corrected reweighting;",
+  "S-BISQ = S-estimate with using bisquare $\\rho$ function; S-ROCKE = Rocke's S-estimate."
+)
+zzz <- latex(table.data[,-c(1,2)], 
+      file="table3.final.means01.tex",
+      caption=tmpout.t3$caption, 
+  label="Table:Table3:Final:010",
+  title="",
+  rowname=table.data$Method,
+  rowlabel="Method",
+  dec=3,
+  rgroup = paste("Dimension =",as.character(unique(table.data$v))),
+  n.rgroup = rep(nlevels(table.data$Method),length(unique(table.data$v))),
+  longtable=TRUE,
+  size="small"
+)
+rm(zzz)
+@
+
+<<table3-step-01b, eval=FALSE>>=
+table.data <- subset( tmpout.t3$reshaped$sds010, !grepl("NOSS",Method) )
+table.data$Method <- table.data$Method[drop=TRUE]
+
+## sd, 0.01 case
+tmpout.t3$caption <- paste(
+  "Monte Carlo standard deviations for the intersection multivariate outlier tests at the ",
+  "$\\alpha = 0.01$ notional level for several estimates of dispersion. Standard errors for the test sizes ",
+  "presented in Table \\ref{Table:Table3:Final:010} can be obtained by dividing corresponding entries in this ",
+  "table by $\\sqrt{50000}$."
+)
+zzz <- latex(table.data[,-c(1,2)], 
+      file="table3.final.sds01.tex",
+      caption=tmpout.t3$caption, 
+  label="Table:Table3:Final:SDS:010",
+  title="",
+  rowname=table.data$Method,
+  rowlabel="Method",
+  dec=3,
+  rgroup = paste("Dimension =",as.character(unique(table.data$v))),
+  n.rgroup = rep(nlevels(table.data$Method),length(unique(table.data$v))),
+  longtable=TRUE,
+  size="small"
+)
+rm(zzz)
+@
+
+\subsubsection{Figures}
+Here we produce all the figures used in \cite{GreenMartin:2014b}
+for the analysis of the intersection hypothesis case. As before,
+these plots largely share the same structure, just with different 
+subsets of the data (corresponding to different estimators.
+
+The code below produces figures for the $0.01$ significance level
+case; the code for other significance levels is similar and is omitted
+to save space.
+<<table3-step-02a, eval=FALSE>>=
+# MCD with chi-square 
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("MCDMBP.RAW","MCD75.RAW","MCD95.RAW"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75","MCD95","MCDMBP")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_MCD_ChiSq_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step-02b, eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("RMCDMBP","RMCD75","RMCD95"),
+      drop.unused.levels=TRUE)
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_RMCD_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02c,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("RMCDMBP.CH","RMCD75.CH","RMCD95.CH"),
+      drop.unused.levels=TRUE)
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_RMCDCH_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02d,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("MCDMBP.HRRAW","MCD75.HRRAW","MCD95.HRRAW"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.HR","MCD95.HR","MCDMBP.HR")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_MCDHR_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02e,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("MCDMBP.GMRAW","MCD75.GMRAW","MCD95.GMRAW"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.GM","MCD95.GM","MCDMBP.GM")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_MCDGM_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02f,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("MCDMBP.HRADJ","MCD75.HRADJ","MCD95.HRADJ"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.HR","MCD95.HR","MCDMBP.HR")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_MCDHRADJ_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02g,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("MCDMBP.GMADJ","MCD75.GMADJ","MCD95.GMADJ"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.GM","MCD95.GM","MCDMBP.GM")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_MCDGMADJ_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+
+<<table3-step02h,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("MCDMBP.RAW","MCDMBP.HRRAW","MCDMBP.HRADJ","MCDMBP.GMRAW",
+    "MCDMBP.GMADJ","RMCDMBP","RMCDMBP.CH"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCDMBP.GMADJ","MCDMBP.GM","MCDMBP.HRADJ",
+  "MCDMBP.HR","MCDMBP","RMCDMBP","RMCDMBP.CH")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_Combined_MCDMBP_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02i,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("MCDMBP.HRRAW","MCDMBP.GMRAW"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCDMBP.GM","MCDMBP.HR")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_Combined_MCDMBP_HRGM_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02j,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("MCD75.RAW","MCD75.HRRAW","MCD75.HRADJ","MCD75.GMRAW",
+    "MCD75.GMADJ","RMCD75","RMCD75.CH"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.GMADJ","MCD75.GM","MCD75.HRADJ",
+  "MCD75.HR","MCD75","RMCD75","RMCD75.CH")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_Combined_MCD75_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02k,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("MCD75.HRRAW","MCD75.GMRAW"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.GM","MCD75.HR")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_Combined_MCD75_HRGM_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02l,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("MCD95.RAW","MCD95.HRRAW","MCD95.HRADJ","MCD95.GMRAW",
+    "MCD95.GMADJ","RMCD95","RMCD95.CH"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD95.GMADJ","MCD95.GM","MCD95.HRADJ",
+  "MCD95.HR","MCD95","RMCD95","RMCD95.CH")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_Combined_MCD95_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02m,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("MCD95.HRRAW","MCD95.GMRAW"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD95.GM","MCD95.HR")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_Combined_MCD95_HRGM_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02n,eval=FALSE>>=# make a plot showing how the MCD methods compare for dimension 10
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, (p == 10) & (
+    method %in% c("MCDMBP.RAW","MCDMBP.GMRAW","MCDMBP.HRRAW","RMCDMBP","RMCDMBP.CH",
+          "MCD75.RAW","MCD75.GMRAW","MCD75.HRRAW","RMCD75","RMCD75.CH",
+          "MCD95.RAW","MCD95.GMRAW","MCD95.HRRAW","RMCD95","RMCD95.CH") ),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("MCD75.GM","MCD75.HR","MCD75","MCD95.GM","MCD95.HR","MCD95",
+  "MCDMBP.GM","MCDMBP.HR","MCDMBP","RMCD75.CH","RMCD75","RMCD95.CH","RMCD95","RMCDMBP.CH",
+  "RMCDMBP"
+  )
+names(plotdata)[1] <- "DIM"
+plotdata$mcdalpha <- plotdata$method
+lvs <- levels(plotdata$mcdalpha) 
+lvs[grep("MBP",lvs)] <- "MBP"
+lvs[grep("75",lvs)] <- "0.75"
+lvs[grep("95",lvs)] <- "0.95"
+levels(plotdata$mcdalpha) <- lvs
+plotdata$mcdalpha <- factor(plotdata$mcdalpha, ordered=TRUE, levels=c("MBP","0.75","0.95"))
+
+plotdata$mcdvariant <- plotdata$method
+lvs <- levels(plotdata$mcdvariant) 
+lvs[grep("GM$"           ,lvs)] <- "MCD (GM)"
+lvs[grep("HR$"           ,lvs)] <- "MCD (HR)"
+lvs[grep("^RMCD.*\\.CH$"  ,lvs)] <- "RMCDCH (CHISQ.)"
+lvs[grep("^RMCD[79]5$"   ,lvs)] <- "RMCD (CHISQ.)"
+lvs[grep("^MCD[79]5$"    ,lvs)] <- "MCD (CHISQ.)"
+lvs[grep("^RMCDMBP$"     ,lvs)] <- "RMCD (CHISQ.)"
+lvs[grep("^MCDMBP$"      ,lvs)] <- "MCD (CHISQ.)"
+levels(plotdata$mcdvariant) <- lvs
+
+theplot <- xyplot( mean010.scaled ~ n | mcdalpha,
+  data = plotdata,
+  groups = mcdvariant,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "DIMENSION = 10",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="free"), x = list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  layout=c(3,1),
+  aspect = 1,
+  auto.key = list(space="bottom", points = TRUE, columns = 3)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_Compare_MCD_v10_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02o,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("OGK","ROGK","ROGK.CH"),
+      drop.unused.levels=TRUE)
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x=list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_OGK_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+
+<<table3-step02p,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("SEST.BS"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- "BISQUARE S-EST."
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x=list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_BISQ_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02q,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("SEST.RK"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- "ROCKE S-EST."
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x=list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_ROCKE10_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
+<<table3-step02r,eval=FALSE>>=
+plotdata <- cggRutils:::subset.data.frame(tmpout.t3$result, 
+    method %in% c("SEST.BS","SEST.RK"),
+      drop.unused.levels=TRUE)
+levels(plotdata$method) <- c("BISQUARE S-EST.","ROCKE S-EST")
+names(plotdata)[1] <- "DIM"
+
+theplot <- xyplot( mean010.scaled ~ n | DIM,
+  data = plotdata,
+  groups = method,
+  type = "b",
+  xlab = "SAMPLE SIZE",
+  ylab = "SIMULATED SIZE/0.01",
+  main = "",
+  as.table = TRUE,
+  strip = strip.custom( style = 1, strip.levels=c(TRUE,TRUE) ),
+  panel = function(...) {
+    panel.superpose(...)
+    panel.abline(h = 1, lty="dotted", col="black", lwd=2)
+  },
+  scale = list(y = list(relation="same"), x=list(rot=45)),
+  between = list(x = 0.25, y = 0.5),
+  xlim=c(0,1100),
+  auto.key = list(x = 0.6, y = 0.25, points = TRUE)
+)
+trellis.device(pdf, theme=splus.theme, file="Intersection_BISQ_ROCKE_Results_010.pdf")
+tss <- trellis.par.get("superpose.symbol")
+tss$pch <- c(19,8,15,1:7)
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.symbol",tss)
+tss <- trellis.par.get("superpose.line")
+tss$col[1:4] <- c("#007EFF","#FF0000","darkgreen","#FF00FF")
+trellis.par.set("superpose.line",tss)
+print(theplot)
+dev.off()
+@
+
 \bibliographystyle{plainnat}
 \bibliography{HardinRockeExtension}
 \end{document}
