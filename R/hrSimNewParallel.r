@@ -30,7 +30,7 @@ function(cl,p,n,N,B=10000,alpha=0.05,mcd.alpha=max.bdp.mcd.alpha(n,p),lgf="") {
     results <- array(NA, dim=c(b,9))
     cat("\t Iteration: ",file=lgf,append=TRUE)
     hr <- hr05CutoffMvnormal(n.obs=n,p.dim=p,
-      mcd.alpha=mcd.alpha,signif.alpha=alpha, method="CG")
+      mcd.alpha=mcd.alpha,signif.alpha=alpha, method="GM14")
     
     for ( j in 1:b ) {
       if ( (j%% 50)==0 ) cat(j," ",file=lgf,append=TRUE)
