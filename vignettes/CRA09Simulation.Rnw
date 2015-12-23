@@ -179,6 +179,17 @@ its columns).
 <<buildcases, eval=FALSE>>=
 all.params <- expand.grid(
   list(p=seq(2,20,2), n=c(50,75,100,150,200,300,500,1000)))
+# adding more coverage for small sample sizes
+all.params <- rbind( all.params, within( 
+  expand.grid(list(p=seq(2,20,2),
+    ratio=c( 3,5,7,9,11 ) )), 
+  {
+    n <- p * ratio
+    rm(ratio)
+  }
+))
+# remove any duplicates
+all.params <- unique(all.params)
 # try to order by the size of the problem
 all.params <- all.params[ order( all.params$p * all.params$n, decreasing=TRUE), ]
 all.params <- data.frame(t(as.matrix( all.params )))
