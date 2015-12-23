@@ -1,1 +1,5 @@
-Hello!
+This R package is a companion to the papers Green and Martin (2014, 2015).
+It can be used to replicate the results of those papers as well as 
+those of Hardin and Rocke (2005) and Cerioli et al. (2009).
+
+See the help files and the vignettes for more information.
