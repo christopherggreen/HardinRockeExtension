@@ -1210,6 +1210,11 @@ row.names(allstds.hrsimold01) <- NULL
 
 Next we fix up the results for use in a table.
 <<data-step12b,eval=FALSE>>=
+names(allmeans.hrsimold01) <- gsub("HR","GM", names(allmeans.hrsimold01))
+names(allstds.hrsimold01 ) <- gsub("HR","GM", names(allstds.hrsimold01 ))
+names(allmeans.hrsimold05) <- gsub("HR","GM", names(allmeans.hrsimold05))
+names(allstds.hrsimold05 ) <- gsub("HR","GM", names(allstds.hrsimold05 ))
+
 allmeans01 <- merge(
   merge(
     allmeans.hrsimnew01[,c("p","n","mcd.alpha","mbp","GMPRED.CON")],
