@@ -19,4 +19,5 @@ License: GPL (>= 2)
 LazyLoad: yes
 Depends: R (>= 3.0.0)
 Imports: CerioliOutlierDetection, abind, rrcov, robustbase, mvtnorm
+Suggests: parallel
 URL: http://christopherggreen.github.io/HardinRockeExtension/  
