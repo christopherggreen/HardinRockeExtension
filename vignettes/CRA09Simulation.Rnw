@@ -96,6 +96,8 @@ require( HardinRockeExtension    )
 
 # force single-threaded BLAS if possible
 omp_set_num_threads(1)
+# print warnings as they occur
+options(warn=1)
 @
 
 Create a cluster using one of the \texttt{makeXXcluster}
@@ -119,7 +121,7 @@ with a seed; this makes it possible for you to
 replicate our numbers and the resulting figures.
 <<reproduce, eval=FALSE>>=
 # make reproducible
-clusterSetRNGStream(cl = thecluster, 2014)
+clusterSetRNGStream(cl = thecluster, 2016)
 @
 
 Now we initialize each cluster node using
@@ -150,6 +152,8 @@ tmp.rv <- clusterEvalQ( cl = thecluster, {
 
   # force single-threaded BLAS if possible
   omp_set_num_threads(1)
+  # print warnings as they occur
+  options(warn=1)
 
   # sleep for 30 seconds to allow for other output to be flushed
   my.pid <- Sys.getpid()
@@ -194,6 +198,11 @@ all.params <- unique(all.params)
 all.params <- all.params[ order( all.params$p * all.params$n, decreasing=TRUE), ]
 all.params <- data.frame(t(as.matrix( all.params )))
 names( all.params ) <- sprintf("V%02d",seq(ncol(all.params)))
+cat("Parameter matrix size:\n")
+print( dim(all.params) )
+cat("Parameters:\n")
+print( all.params )
+cat("***\n")
 @
 
 \section{Simulation Runs}
@@ -218,16 +227,16 @@ cat("Starting run at ", format(Sys.time()), "\n")
 
 table1.results.final <- lapply(all.params,
   function(pn,clst,ns,bs) {
-    cat("Trial p = ",pn[1]," n = ",pn[2],"\n")
+    cat("Trial p = ",pn[1]," n = ",pn[2],"at ", format(Sys.time()), "\n")
     results <- table13sim.parallel(cl=clst, p = pn[1], nn = pn[2], 
       N=ns, B=bs, lgf=logfile)
     attr(results,"p") <- pn[1]
     attr(results,"n") <- pn[2]
 
     save("results",
-	  file=sprintf("table1_results_final_p%02d_n%04d.rda",pn[1],pn[2]))
+      file=sprintf("table1_results_final_p%02d_n%04d.rda",pn[1],pn[2]))
     save(".Random.seed",
-	  file=sprintf("table1_randomseedpost_p%02d_n%04d.rda",pn[1],pn[2]))
+      file=sprintf("table1_randomseedpost_p%02d_n%04d.rda",pn[1],pn[2]))
     invisible(TRUE)
   }, 
   clst=thecluster, ns=N.SIM, bs=B.SIM
@@ -252,7 +261,7 @@ the results from each case/file.
 library( cggRutils )
 library( Hmisc )
 library( lattice )
-tmpout <- list(my.a = 80, my.b = 48, result=NULL)
+tmpout <- list(my.a = 128, my.b = 74, result=NULL)
 
 tmpout$result <- with(tmpout, 
   list(
@@ -453,23 +462,33 @@ tmpout.t3$result$method <- tmpout.t3$result$method[drop=TRUE]
 levels(tmpout.t3$result$method) <- gsub("\\.T3$","",levels(tmpout.t3$result$method))
 
 lvs <- c(
-  "MCD75.GM.NOSS","MCD75.GM","MCD75.HR.NOSS","MCD75.HR","MCD75.CHI",
-  "MCD95.GM.NOSS","MCD95.GM","MCD95.HR.NOSS","MCD95.HR","MCD95.CHI",
-  "MCDMBP.GM.NOSS","MCDMBP.GM","MCDMBP.HR.NOSS","MCDMBP.HR","MCDMBP.CHI",
-  "OGK",
-  "RMCD75.CH","RMCD75","RMCD95.CH","RMCD95","RMCDMBP.CH","RMCDMBP",
-  "ROGK.CH","ROGK",
-  "SEST.BS","SEST.RK"
+  "MCD75.GM.NOSS","MCD75.GM.NOSS.ALT","MCD75.GM","MCD75.GM.ALT",
+  "MCD75.HR.NOSS","MCD75.HR.NOSS.ALT","MCD75.HR","MCD75.HR.ALT",
+  "MCD75.CHI","MCD75.CHI.ALT",
+  "MCD95.GM.NOSS","MCD95.GM.NOSS.ALT","MCD95.GM","MCD95.GM.ALT",
+  "MCD95.HR.NOSS","MCD95.HR.NOSS.ALT","MCD95.HR","MCD95.HR.ALT",
+  "MCD95.CHI","MCD95.CHI.ALT",
+  "MCDMBP.GM.NOSS","MCDMBP.GM.NOSS.ALT","MCDMBP.GM","MCDMBP.GM.ALT",
+  "MCDMBP.HR.NOSS","MCDMBP.HR.NOSS.ALT","MCDMBP.HR","MCDMBP.HR.ALT",
+  "MCDMBP.CHI","MCDMBP.CHI.ALT",
+  "OGK","OGK.ALT",
+  "RMCD75.CH","RMCD75.CH.ALT","RMCD75","RMCD75.ALT",
+  "RMCD95.CH","RMCD95.CH.ALT","RMCD95","RMCD95.ALT",
+  "RMCDMBP.CH","RMCDMBP.CH.ALT","RMCDMBP","RMCDMBP.ALT",
+  "ROGK.CH","ROGK.CH.ALT","ROGK","ROGK.ALT",
+  "SEST.BS","SEST.BS.ALT","SEST.RK","SEST.RK.ALT"
 )
 lvs.sorted <- c(
-  "MCDMBP.CHI","MCDMBP.HR","MCDMBP.GM","RMCDMBP","RMCDMBP.CH",
-  "MCDMBP.HR.NOSS","MCDMBP.GM.NOSS",
-  "MCD75.CHI","MCD75.HR","MCD75.GM","RMCD75","RMCD75.CH",
-  "MCD75.HR.NOSS","MCD75.GM.NOSS",
-  "MCD95.CHI","MCD95.HR","MCD95.GM","RMCD95","RMCD95.CH",
-  "MCD95.HR.NOSS","MCD95.GM.NOSS",
-  "OGK","ROGK","ROGK.CH","SEST.BS","SEST.RK"
+  "MCDMBP.CHI","MCDMBP.HR","MCDMBP.GM","RMCDMBP","RMCDMBP.CH","MCDMBP.HR.NOSS","MCDMBP.GM.NOSS",
+  "MCDMBP.CHI.ALT","MCDMBP.HR.ALT","MCDMBP.GM.ALT","RMCDMBP.ALT","RMCDMBP.CH.ALT","MCDMBP.HR.NOSS.ALT",
+  "MCDMBP.GM.NOSS.ALT","MCD75.CHI","MCD75.HR","MCD75.GM","RMCD75","RMCD75.CH","MCD75.HR.NOSS",
+  "MCD75.GM.NOSS","MCD75.CHI.ALT","MCD75.HR.ALT","MCD75.GM.ALT","RMCD75.ALT","RMCD75.CH.ALT",
+  "MCD75.HR.NOSS.ALT","MCD75.GM.NOSS.ALT","MCD95.CHI","MCD95.HR","MCD95.GM","RMCD95","RMCD95.CH",
+  "MCD95.HR.NOSS","MCD95.GM.NOSS","MCD95.CHI.ALT","MCD95.HR.ALT","MCD95.GM.ALT","RMCD95.ALT",
+  "RMCD95.CH.ALT","MCD95.HR.NOSS.ALT","MCD95.GM.NOSS.ALT","OGK","ROGK","ROGK.CH","SEST.BS",
+  "SEST.RK","OGK.ALT","ROGK.ALT","ROGK.CH.ALT","SEST.BS.ALT","SEST.RK.ALT"
 )
+
 tmpout.t3$my.b <- length(lvs)
 
 for (var in c("mean010","mean025","mean050","sd010","sd025","sd050")) {
@@ -909,7 +928,7 @@ rm(zzz)
 
 This is Table 4 in \cite{GreenMartin:2014b}.
 <<table3-step-01b, eval=FALSE>>=
-table.data <- subset( tmpout.t3$reshaped$sds010, !grepl("NOSS",Method) )
+table.data <- subset( tmpout.t3$reshaped$sd010, !grepl("NOSS",Method) )
 table.data$Method <- table.data$Method[drop=TRUE]
 
 ## sd, 0.01 case
