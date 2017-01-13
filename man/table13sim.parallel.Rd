@@ -177,7 +177,7 @@ Written and maintained by Christopher G. Green <christopher.g.green@gmail.com>
 
     require( parallel                )
     require( CerioliOutlierDetection )
-    require( HardinRockeExtension    )
+    require( HardinRockeExtensionSimulations    )
     
 	# we use a socket cluster on Windows,
 	# change to your preferred method of
@@ -190,11 +190,11 @@ Written and maintained by Christopher G. Green <christopher.g.green@gmail.com>
     # initialize each node
     tmp.rv <- clusterEvalQ( cl = thecluster, {
     
-      require(abind,                   quietly=TRUE)
-      require(rrcov,                   quietly=TRUE)
-      require(mvtnorm,                 quietly=TRUE)
-      require(CerioliOutlierDetection, quietly=TRUE)
-      require(HardinRockeExtension,    quietly=TRUE)
+      require(abind,                              quietly=TRUE)
+      require(rrcov,                              quietly=TRUE)
+      require(mvtnorm,                            quietly=TRUE)
+      require(CerioliOutlierDetection,            quietly=TRUE)
+      require(HardinRockeExtensionSimulations,    quietly=TRUE)
     
       Sys.sleep(30)
     

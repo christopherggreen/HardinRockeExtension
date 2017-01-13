@@ -1,8 +1,8 @@
-Package: HardinRockeExtension
+Package: HardinRockeExtensionSimulations
 Type: Package
 Title: Replication and Extension of Hardin and Rocke (2005), Cerioli et al. (2009)
-Version: 1.0.21
-Date: 2015-12-27
+Version: 1.1.0
+Date: 2017-01-12
 Authors@R: c(person(c("Christopher","G."),"Green",role=c("aut","cre"),
 	email = "christopher.g.green@gmail.com"),
 	person(c("Johanna","S."),"Hardin",role="ctb"),
@@ -20,4 +20,4 @@ LazyLoad: yes
 Depends: R (>= 3.0.0)
 Imports: CerioliOutlierDetection, abind, rrcov, robustbase, mvtnorm
 Suggests: parallel
-URL: http://christopherggreen.github.io/HardinRockeExtension/  
+URL: http://christopherggreen.github.io/HardinRockeExtensionSimulations/  

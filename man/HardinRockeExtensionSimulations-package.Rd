@@ -1,6 +1,6 @@
-\name{HardinRockeExtension-package}
-\alias{HardinRockeExtension-package}
-\alias{HardinRockeExtension}
+\name{HardinRockeExtensionSimulations-package}
+\alias{HardinRockeExtensionSimulations-package}
+\alias{HardinRockeExtensionSimulations}
 \docType{package}
 \title{
   Package for replicating the results of Hardin and Rocke (2005)
@@ -12,7 +12,7 @@
 }
 \details{
 \tabular{ll}{
-Package: \tab HardinRockeExtension\cr
+Package: \tab HardinRockeExtensionSimulations\cr
 Type: \tab Package\cr
 Version: \tab 1.0.13\cr
 Date: \tab 2015-12-17\cr

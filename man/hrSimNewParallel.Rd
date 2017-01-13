@@ -103,7 +103,7 @@ Written and maintained by Christopher G. Green <christopher.g.green@gmail.com>
     # initialize each node
     tmp.rv <- clusterEvalQ( cl = thecluster, {
       require( CerioliOutlierDetection )
-      require( HardinRockeExtension )
+      require( HardinRockeExtensionSimulations )
       N.SIM <- 5000
       B.SIM <- 500
 

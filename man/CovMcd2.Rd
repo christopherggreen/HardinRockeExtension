@@ -60,7 +60,7 @@ CovMcd(x,
   threshold is a Bonferroni-corrected quantile.
 
   The main work is done inside \code{covMcd2}, a private function to the
-  \code{HardinRockeExtension} package. This function is a modified version of
+  \code{HardinRockeExtensionSimulations} package. This function is a modified version of
   \code{covMcd} from the \code{robustbase} package: it replaces the
   quantity \code{quantiel} used in the reweighting with a function of the same
   name that computes the quantile specified in the \code{reweighting}

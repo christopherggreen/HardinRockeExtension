@@ -96,7 +96,7 @@ Based on code by Johanna S. Hardin.
     # initialize each node
     tmp.rv <- clusterEvalQ( cl = thecluster, {
       require( CerioliOutlierDetection )
-      require( HardinRockeExtension )
+      require( HardinRockeExtensionSimulations )
       N.SIM <- 5000
       B.SIM <- 250
      
