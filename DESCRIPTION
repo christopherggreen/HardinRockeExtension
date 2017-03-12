@@ -1,8 +1,8 @@
 Package: HardinRockeExtensionSimulations
 Type: Package
 Title: Replication and Extension of Hardin and Rocke (2005), Cerioli et al. (2009)
-Version: 1.1.0
-Date: 2017-01-12
+Version: 1.2.0
+Date: 2017-03-12
 Authors@R: c(person(c("Christopher","G."),"Green",role=c("aut","cre"),
 	email = "christopher.g.green@gmail.com"),
 	person(c("Johanna","S."),"Hardin",role="ctb"),
@@ -13,7 +13,7 @@ Authors@R: c(person(c("Christopher","G."),"Green",role=c("aut","cre"),
 	)
 Maintainer: Christopher G. Green <christopher.g.green@gmail.com> 
 Description: Provides functions and scripts to replicate 
-	Hardin and Rocke (2005), Green and Martin (2014),
+	Hardin and Rocke (2005), Green and Martin (2017),
 	Cerioli et al. (2009)
 License: GPL (>= 2)
 LazyLoad: yes
