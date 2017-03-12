@@ -11,5 +11,6 @@ export(
 	table1sim.parallel,
 	table13sim.parallel,
 	table13sim.parallel.check,
-	CovMcd2
+	CovMcd2,
+	Cerioli10PowerShift
 )
